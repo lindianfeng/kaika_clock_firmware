@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #define LED_NUM 4
+#define FRAME_DATA_SIZE (8*LED_NUM)
 #define DEFAULT_INTENSIVITY 0x05
 
 typedef enum {

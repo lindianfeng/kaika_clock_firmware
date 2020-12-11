@@ -6,25 +6,15 @@
  */
 
 #include "clock.h"
-#include "max7219.h"
-#include "ds3231.h"
 #include <string.h>
 #include <stdio.h>
+
+#include "max7219.h"
+#include "ds3231.h"
+#include "utils.h"
 #include "stm32f1xx_hal.h"
 
-#define BIT_SET(a,b) ((a) |= ((uint8_t)1<<(b)))
-#define BIT_CLEAR(a,b) ((a) &= ~((uint8_t)1<<(b)))
-#define BIT_FLIP(a,b) ((a) ^= ((uint8_t)1<<(b)))
-#define BIT_CHECK(a,b) (!!((a) & ((uint8_t)1<<(b))))
-
-/* x=target variable, y=mask */
-#define BITMASK_SET(x,y) ((x) |= (y))
-#define BITMASK_CLEAR(x,y) ((x) &= (~(y)))
-#define BITMASK_FLIP(x,y) ((x) ^= (y))
-#define BITMASK_CHECK_ALL(x,y) (!(~(x) & (y)))
-#define BITMASK_CHECK_ANY(x,y) ((x) & (y))
-
-RTC_Data rtc = { .Year = 2020, .Month = 12, .Day = 9, .DaysOfWeek = WEDNESDAY, .Hour = 13, .Min = 16, .Sec = 20 };
+extern RTC_Data rtc;
 
 const uint8_t numbers_5x8[][8] = {
     { 0x70, 0x88, 0x88, 0x88, 0x88, 0x88, 0x88, 0x70 },  //0
@@ -58,10 +48,8 @@ const uint8_t signs[][8] = {
     { 0x3c, 0x42, 0xa5, 0x81, 0xbd, 0x81, 0x42, 0x3c },  //标准脸
     };
 
-static uint8_t time_frame_data[LED_NUM * 8] = { 0 };
-
-static void get_time_frame_data(void) {
-
+static uint8_t* get_time_frame_data(void) {
+  static uint8_t time_frame_data[FRAME_DATA_SIZE] = { 0 };
   const uint8_t hour_1st = rtc.Hour / 10;
   const uint8_t hour_2nd = rtc.Hour % 10;
 
@@ -71,7 +59,7 @@ static void get_time_frame_data(void) {
   const uint8_t second_1st = rtc.Sec / 10;
   const uint8_t second_2nd = rtc.Sec % 10;
 
-  memset(time_frame_data, 0, sizeof(time_frame_data));
+  memset(time_frame_data, 0, sizeof(FRAME_DATA_SIZE));
 
   for (uint8_t i = 0; i < 8; i++) {
     for (uint8_t j = 0; j < LED_NUM; j++) {
@@ -92,11 +80,12 @@ static void get_time_frame_data(void) {
       }
     }
   }
+
+  return time_frame_data;
 }
 
-static uint8_t date_frame_data[LED_NUM * 8] = { 0 };
-
-static void get_date_frame_data(void) {
+static uint8_t* get_date_frame_data(void) {
+  static uint8_t date_frame_datas[FRAME_DATA_SIZE] = { 0 };
   const uint8_t month_1st = rtc.Month / 10;
   const uint8_t month_2nd = rtc.Month % 10;
 
@@ -104,11 +93,11 @@ static void get_date_frame_data(void) {
   const uint8_t day_2nd = rtc.Day % 10;
   const uint8_t day_of_week = rtc.DaysOfWeek;
 
-  memset(date_frame_data, 0, sizeof(date_frame_data));
+  memset(date_frame_datas, 0, sizeof(FRAME_DATA_SIZE));
 
   for (uint8_t i = 0; i < 8; i++) {
     for (uint8_t j = 0; j < LED_NUM; j++) {
-      uint8_t *data = date_frame_data + i * LED_NUM + j;
+      uint8_t *data = date_frame_datas + i * LED_NUM + j;
       switch (j) {
         case 0:
           *data = numbers_5x8[month_1st][i] | ((numbers_5x8[month_2nd][i]) >> 5);
@@ -125,32 +114,56 @@ static void get_date_frame_data(void) {
       }
     }
   }
+
+  return date_frame_datas;
 }
 
-static void modify_frame_data(uint8_t data[LED_NUM * 8],uint8_t row,uint8_t col,uint8_t n){
-  *(date_frame_data + row * LED_NUM + col) = n;
-}
+//static void modify_frame_data(uint8_t data[LED_NUM * 8],uint8_t row,uint8_t col,uint8_t n){
+//  *(date_frame_data + row * LED_NUM + col) = n;
+//}
 
-static void shit_up_time_sec_data() {
-  const uint8_t old = *(time_frame_data + 0 * LED_NUM + 3);
-  for (uint8_t i = 0; i < 8; i++) {
-    uint8_t *data = time_frame_data + i * LED_NUM + 3;
-    if (i < 7) {
-      *data = *(time_frame_data + (i + 1) * LED_NUM + 3);
-    } else {
-      *data = old;
+static uint8_t* frame_data_row_to_col(uint8_t *row_frame_data) {
+  static uint8_t col_frame_data[FRAME_DATA_SIZE] = { 0 };
+
+  for (int row = 0; row < 32; ++row) {
+    for (int col = 0; col < 4; ++col) {
+
     }
   }
+
+  return col_frame_data;
+}
+
+static void shift_down_time_sec_data(uint8_t *time_frame_data) {
+  const uint8_t old = *(time_frame_data + 7 * LED_NUM + 3);
+  for (int8_t i = 6; i >= 0; i--) {
+    uint8_t *data = time_frame_data + i * LED_NUM + 3;
+    *(time_frame_data + (i + 1) * LED_NUM + 3) = *data;
+  }
+
+  *(time_frame_data + 0 * LED_NUM + 3) = old;
+}
+
+static void shift_up_time_sec_data(uint8_t *time_frame_data) {
+  const uint8_t old = *(time_frame_data + 0 * LED_NUM + 3);
+
+  for (uint8_t i = 0; i < 7; i++) {
+    uint8_t *data = time_frame_data + i * LED_NUM + 3;
+    *data = *(time_frame_data + (i + 1) * LED_NUM + 3);
+  }
+
+  *(time_frame_data + 7 * LED_NUM + 3) = old;
 }
 
 void Clock_Init(void) {
-  Max7219_Init();
   DS3231_Init();
+  Max7219_Init();
 }
 
-static uint16_t t = 1;
+static uint16_t t = 0;
+
 void Clock_ShowTime(void) {
-  if (t % 5 == 0) {
+  if ((t % 5) == 0) {
     rtc.Sec++;
   }
 
@@ -165,19 +178,29 @@ void Clock_ShowTime(void) {
     rtc.Min = 0;
   }
 
-  if ((t % 3) == 0)
-      {
-    get_time_frame_data();
+  static uint8_t *frame_data = NULL;
+  static uint8_t move_times = 0;
+
+  if (0 == (t % 3)) {
+    frame_data = get_time_frame_data();
+    move_times = 0;
   } else {
-    shit_up_time_sec_data();
+    if (move_times < 1) {
+      shift_up_time_sec_data(frame_data);
+      printf("up\r\n");
+    } else {
+      shift_down_time_sec_data(frame_data);
+      printf("down\r\n");
+    }
+    move_times++;
   }
 
-  Max7219_RenderData(time_frame_data, sizeof(time_frame_data));
+  Max7219_RenderData(frame_data, FRAME_DATA_SIZE);
 
   t++;
 }
 
 void Clock_ShowDate(void) {
-  get_date_frame_data();
-  Max7219_RenderData(date_frame_data, sizeof(time_frame_data));
+  uint8_t *date_frame_datas = get_date_frame_data();
+  Max7219_RenderData(date_frame_datas, FRAME_DATA_SIZE);
 }

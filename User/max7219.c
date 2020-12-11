@@ -15,7 +15,7 @@
 
 extern SPI_HandleTypeDef hspi1;
 
-static uint8_t frame_data[LED_NUM * 8] = { 0 };
+static uint8_t frame_data[FRAME_DATA_SIZE] = { 0 };
 
 static void Max7219_Welcome(void);
 static void Max7219_SendData(uint8_t addr, uint8_t data);
@@ -151,6 +151,10 @@ void Max7219_ShowDate(uint8_t month, uint8_t day, uint8_t week) {
 }
 
 void Max7219_SetData(const uint8_t *data, uint32_t len){
+  if(!data){
+    return;
+  }
+
 	 if (len != 8 * LED_NUM) {
     return;
   }
@@ -169,6 +173,10 @@ void Max7219_Render(void){
 }
 
 void Max7219_RenderData(const uint8_t *data, uint32_t len) {
+  if(!data){
+    return;
+  }
+
   Max7219_SetData(data,len);
 	Max7219_Render();
 }
