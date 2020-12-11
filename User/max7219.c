@@ -6,160 +6,20 @@
  */
 
 #include "max7219.h"
+#include <string.h>
 #include "main.h"
+
 
 #define CS_SET() 	HAL_GPIO_WritePin(CS_MAX7219_GPIO_Port, CS_MAX7219_Pin, GPIO_PIN_RESET)
 #define CS_RESET() 	HAL_GPIO_WritePin(CS_MAX7219_GPIO_Port, CS_MAX7219_Pin, GPIO_PIN_SET)
 
 extern SPI_HandleTypeDef hspi1;
 
-static const uint8_t numbers_5x8[][8] = {
-    { 0x70, 0x88, 0x88, 0x88, 0x88, 0x88, 0x88, 0x70 },  //0
-    { 0x20, 0x60, 0x20, 0x20, 0x20, 0x20, 0x20, 0x70 },  //1
-    { 0x70, 0x88, 0x08, 0x08, 0x10, 0x20, 0x40, 0xf8 },  //2
-    { 0x70, 0x88, 0x08, 0x30, 0x08, 0x08, 0x88, 0x70 },  //3
-    { 0x08, 0x18, 0x28, 0x48, 0x88, 0xf8, 0x08, 0x08 },  //4
-    { 0xf8, 0x80, 0x80, 0xf0, 0x08, 0x08, 0x88, 0x70 },  //5
-    { 0x70, 0x88, 0x80, 0xf0, 0x88, 0x88, 0x88, 0x70 },  //6
-    { 0xf8, 0x08, 0x08, 0x10, 0x20, 0x40, 0x40, 0x40 },  //7
-    { 0x70, 0x88, 0x88, 0x70, 0x88, 0x88, 0x88, 0x70 },  //8
-    { 0x70, 0x88, 0x88, 0x88, 0x78, 0x08, 0x88, 0x70 }   //9
-};
-
-static const uint8_t numbers_3x5[10][8] = {
-    { 0x00, 0x00, 0x00, 0xe0, 0xa0, 0xa0, 0xa0, 0xe0 },  //0
-    { 0x00, 0x00, 0x00, 0x40, 0x40, 0x40, 0x40, 0x40 },  //1
-    { 0x00, 0x00, 0x00, 0xe0, 0x20, 0xe0, 0x80, 0xe0 },  //2
-    { 0x00, 0x00, 0x00, 0xe0, 0x20, 0xe0, 0x20, 0xe0 },  //3
-    { 0x00, 0x00, 0x00, 0xa0, 0xa0, 0xe0, 0x20, 0x20 },  //4
-    { 0x00, 0x00, 0x00, 0xe0, 0x80, 0xe0, 0x20, 0xe0 },  //5
-    { 0x00, 0x00, 0x00, 0xe0, 0x80, 0xe0, 0xa0, 0xe0 },  //6
-    { 0x00, 0x00, 0x00, 0xe0, 0x20, 0x20, 0x20, 0x20 },  //7
-    { 0x00, 0x00, 0x00, 0xe0, 0xa0, 0xe0, 0xa0, 0xe0 },  //8
-    { 0x00, 0x00, 0x00, 0xe0, 0xa0, 0xe0, 0x20, 0xe0 }   //9
-};
-
-static const uint8_t signs[][8] = {
-    { 0x00, 0x80, 0x80, 0x00, 0x00, 0x80, 0x80, 0x00 },  //:
-    { 0x3c, 0x42, 0xa5, 0x81, 0xa5, 0x99, 0x42, 0x3c },  //笑脸
-    { 0x3c, 0x42, 0xa5, 0x81, 0xbd, 0x81, 0x42, 0x3c },  //标准脸
-    {
-      0B00000000,
-      0B00000000,
-      0B00000000,
-      0B00000000,
-      0B11000000,
-      0B00000000,
-      0B00000000,
-      0B00000000
-    },//-
-    };
-
-const uint8_t numbers_b[][8] =
-    {
-        {
-            0B01110000,
-            0B10001000,
-            0B10001000,
-            0B10001000,
-            0B10001000,
-            0B10001000,
-            0B10001000,
-            0B01110000
-        },
-        {
-            0B00100000,
-            0B01100000,
-            0B00100000,
-            0B00100000,
-            0B00100000,
-            0B00100000,
-            0B00100000,
-            0B01110000
-        },
-        {
-            0B01110000,
-            0B10001000,
-            0B00001000,
-            0B00001000,
-            0B00010000,
-            0B00100000,
-            0B01000000,
-            0B11111000
-        },
-        {
-            0B01110000,
-            0B10001000,
-            0B00001000,
-            0B00110000,
-            0B00001000,
-            0B00001000,
-            0B10001000,
-            0B01110000
-        },
-        {
-            0B00001000,
-            0B00011000,
-            0B00101000,
-            0B01001000,
-            0B10001000,
-            0B11111000,
-            0B00001000,
-            0B00001000
-        },
-        {
-            0B11111000,
-            0B10000000,
-            0B10000000,
-            0B11110000,
-            0B00001000,
-            0B00001000,
-            0B10001000,
-            0B01110000
-        },
-        {
-            0B01110000,
-            0B10001000,
-            0B10000000,
-            0B11110000,
-            0B10001000,
-            0B10001000,
-            0B10001000,
-            0B01110000
-        },
-        {
-            0B11111000,
-            0B00001000,
-            0B00001000,
-            0B00010000,
-            0B00100000,
-            0B01000000,
-            0B01000000,
-            0B01000000
-        },
-        {
-            0B01110000,
-            0B10001000,
-            0B10001000,
-            0B01110000,
-            0B10001000,
-            0B10001000,
-            0B10001000,
-            0B01110000
-        },
-        {
-            0B01110000,
-            0B10001000,
-            0B10001000,
-            0B10001000,
-            0B01111000,
-            0B00001000,
-            0B10001000,
-            0B01110000
-        }
-    };
+static uint8_t frame_data[LED_NUM * 8] = { 0 };
 
 static void Max7219_Welcome(void);
+static void Max7219_SendData(uint8_t addr, uint8_t data);
+static void Max7219_WriteByte(uint8_t addr, uint8_t data);
 
 static void Max7219_Welcome(void) {
   for (int i = 0; i < 8; i++) {
@@ -201,25 +61,15 @@ void Max7219_SetIntensivity(uint8_t intensivity) {
   Max7219_SendData(REG_INTENSITY, intensivity > 0x0f ? 0x0f : intensivity);
 }
 
-void Max7219_SendData(uint8_t addr, uint8_t data) {
+static void Max7219_SendData(uint8_t addr, uint8_t data) {
   CS_SET();
   Max7219_WriteByte(addr, data);
   CS_RESET();
 }
 
-void Max7219_WriteByte(uint8_t addr, uint8_t data) {
+static void Max7219_WriteByte(uint8_t addr, uint8_t data) {
   HAL_SPI_Transmit(&hspi1, &addr, 1, HAL_MAX_DELAY);
   HAL_SPI_Transmit(&hspi1, &data, 1, HAL_MAX_DELAY);
-}
-
-void Max7219_ShowNumbers(void) {
-  for (int i = 0; i < 8; i++) {
-    CS_SET();
-    for (int j = 0; j < 4; j++) {
-      Max7219_WriteByte(i + 1, numbers_b[j][i]);
-    }
-    CS_RESET();
-  }
 }
 
 static uint8_t old_second = 0;
@@ -238,8 +88,7 @@ void Max7219_ShowTime(uint8_t hour, uint8_t minute, uint8_t second, uint32_t tic
   uint8_t data = 0;
   const uint8_t second_changed = (old_second != second);
 
-
-  if(!(tick % 10)){
+  if (!(tick % 10)) {
     display_point = !display_point;
   }
 
@@ -269,7 +118,7 @@ void Max7219_ShowTime(uint8_t hour, uint8_t minute, uint8_t second, uint32_t tic
   old_second = second;
 }
 
-void Max7219_ShowDate(uint8_t month, uint8_t day,uint8_t week) {
+void Max7219_ShowDate(uint8_t month, uint8_t day, uint8_t week) {
   const uint8_t month_1st = month / 10;
   const uint8_t month_2nd = month % 10;
 
@@ -278,25 +127,48 @@ void Max7219_ShowDate(uint8_t month, uint8_t day,uint8_t week) {
 
   uint8_t data = 0;
   for (uint8_t i = 0; i < 8; i++) {
-     CS_SET();
-     for (uint8_t j = 0; j < LED_NUM; j++) {
-       switch (j) {
-              case 0:
-                data = numbers_5x8[month_1st][i] | ((numbers_5x8[month_2nd][i]) >> 5);
-                break;
-              case 1:
-                data = numbers_5x8[month_2nd][i] << 3 | (signs[3][i] >> 3) | ((numbers_5x8[day_1st][i]) >> 6);
-                break;
-              case 2:
-                data = (numbers_5x8[day_1st][i] << 2) | (numbers_5x8[day_2nd][i] >> 3);
-                break;
-              case 3:
-                data = ((numbers_3x5[week][i]) >> 4);
-                break;
-            }
+    CS_SET();
+    for (uint8_t j = 0; j < LED_NUM; j++) {
+      switch (j) {
+        case 0:
+          data = numbers_5x8[month_1st][i] | ((numbers_5x8[month_2nd][i]) >> 5);
+          break;
+        case 1:
+          data = numbers_5x8[month_2nd][i] << 3 | (signs[3][i] >> 3) | ((numbers_5x8[day_1st][i]) >> 6);
+          break;
+        case 2:
+          data = (numbers_5x8[day_1st][i] << 2) | (numbers_5x8[day_2nd][i] >> 3);
+          break;
+        case 3:
+          data = ((numbers_3x5[week][i]) >> 4);
+          break;
+      }
 
-            Max7219_WriteByte(i + 1, data);
-     }
-     CS_RESET();
+      Max7219_WriteByte(i + 1, data);
+    }
+    CS_RESET();
   }
+}
+
+void Max7219_SetData(const uint8_t *data, uint32_t len){
+	 if (len != 8 * LED_NUM) {
+    return;
+  }
+	 
+	memcpy(frame_data,data,len);
+}
+
+void Max7219_Render(void){
+  for (uint8_t i = 0; i < 8; i++) {
+    CS_SET();
+    for (uint8_t j = 0; j < LED_NUM; j++) {
+      Max7219_WriteByte(i + 1, *(frame_data + i * LED_NUM + j));
+    }
+    CS_RESET();
+  }
+}
+
+void Max7219_RenderData(const uint8_t *data, uint32_t len) {
+  Max7219_SetData(data,len);
+	Max7219_Render();
 }
