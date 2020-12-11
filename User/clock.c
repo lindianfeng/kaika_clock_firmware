@@ -164,31 +164,35 @@ void Clock_Init(void) {
   Max7219_Init();
 }
 
-
 void Clock_ShowTime(void) {
 
-  static uint8_t *frame_data = NULL;
-  static uint8_t old_sec = 0;
-  static uint8_t state = 0;
-  static bool display_point = true;
+	static uint8_t *frame_data = NULL;
+	static uint8_t old_sec = 0;
+	static uint8_t state = 0;
+	static bool display_point = true;
 
-  DS3231_GetTime(&rtc);
+	DS3231_GetTime(&rtc);
 
-  if (rtc.Sec != old_sec) {
-    frame_data = get_time_frame_data(display_point);
-    display_point = !display_point;
-    state = 1;
-  } else if (state == 1) {
-    shift_up_time_sec_data(frame_data);
-    state = 2;
-  } else if (state == 2) {
-    shift_down_time_sec_data(frame_data);
-    state = 0;
-  }
+	if (rtc.Sec != old_sec) {
+		old_sec = rtc.Sec;
+		frame_data = get_time_frame_data(display_point);
+		display_point = !display_point;
+		state++;
+	} else if (state == 1) {
+		shift_up_time_sec_data(frame_data);
+		state++;
+	} else if (state == 2) {
+		shift_up_time_sec_data(frame_data);
+		state++;
+	} else if (state == 3) {
+		shift_down_time_sec_data(frame_data);
+		state++;
+	} else if (state == 4) {
+		shift_down_time_sec_data(frame_data);
+		state = 0;
+	}
 
-  Max7219_SetData(frame_data, FRAME_DATA_SIZE);
-
-  old_sec = rtc.Sec;
+	Max7219_SetData(frame_data, FRAME_DATA_SIZE);
 }
 
 void Clock_ShowDate(void) {

@@ -23,6 +23,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "clock.h"
+#include "ds3231.h"
 #include <stdio.h>
 /* USER CODE END Includes */
 
@@ -66,7 +67,7 @@ static void MX_TIM2_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-
+extern RTC_Data rtc;
 /* USER CODE END 0 */
 
 /**
@@ -102,18 +103,17 @@ int main(void)
   MX_USART1_UART_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-  HAL_TIM_Base_Start_IT(&htim2);
-
   Clock_Init();
+  HAL_TIM_Base_Start_IT(&htim2);
   HAL_Delay(100);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  while (1)
+  for(;;)
   {
     Clock_ShowTime();
-    HAL_Delay(150);
+    HAL_Delay(100);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
