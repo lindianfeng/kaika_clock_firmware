@@ -48,7 +48,7 @@ const uint8_t signs[][8] = {
     { 0x3c, 0x42, 0xa5, 0x81, 0xbd, 0x81, 0x42, 0x3c },  //标准脸
     };
 
-static uint8_t* get_time_frame_data(void) {
+static uint8_t* get_time_frame_data(bool display_point) {
   static uint8_t time_frame_data[FRAME_DATA_SIZE] = { 0 };
   const uint8_t hour_1st = rtc.Hour / 10;
   const uint8_t hour_2nd = rtc.Hour % 10;
@@ -69,7 +69,7 @@ static uint8_t* get_time_frame_data(void) {
           *data = numbers_5x8[hour_1st][i] | ((numbers_5x8[hour_2nd][i]) >> 5);
           break;
         case 1:
-          *data = numbers_5x8[hour_2nd][i] << 3 | ((1 ? signs[0][i] : 0) >> 3) | ((numbers_5x8[minute_1st][i]) >> 5);
+          *data = numbers_5x8[hour_2nd][i] << 3 | ((display_point ? signs[0][i] : 0) >> 3) | ((numbers_5x8[minute_1st][i]) >> 5);
           break;
         case 2:
           *data = (numbers_5x8[minute_1st][i] << 3) | (numbers_5x8[minute_2nd][i] >> 2);
@@ -163,7 +163,7 @@ void Clock_Init(void) {
 static uint16_t t = 0;
 
 void Clock_ShowTime(void) {
-  if ((t % 5) == 0) {
+  if ((t % 10) == 0) {
     rtc.Sec++;
   }
 
@@ -179,24 +179,24 @@ void Clock_ShowTime(void) {
   }
 
   static uint8_t *frame_data = NULL;
-  static uint8_t move_times = 0;
+  static uint8_t old_sec = 0;
+  static uint8_t state = 0;
+  static bool display_point = true;
 
-  if (0 == (t % 3)) {
-    frame_data = get_time_frame_data();
-    move_times = 0;
-  } else {
-    if (move_times < 1) {
-      shift_up_time_sec_data(frame_data);
-      printf("up\r\n");
-    } else {
-      shift_down_time_sec_data(frame_data);
-      printf("down\r\n");
-    }
-    move_times++;
+  if (rtc.Sec != old_sec) {
+    frame_data = get_time_frame_data(display_point);
+    display_point = !display_point;
+    state = 1;
+  } else if (state == 1) {
+    shift_up_time_sec_data(frame_data);
+    state = 2;
+  } else if (state == 2) {
+    shift_down_time_sec_data(frame_data);
+    state = 0;
   }
 
   Max7219_RenderData(frame_data, FRAME_DATA_SIZE);
-
+  old_sec = rtc.Sec;
   t++;
 }
 
