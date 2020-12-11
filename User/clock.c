@@ -167,27 +167,12 @@ void Clock_Init(void) {
 
 void Clock_ShowTime(void) {
 
-  static uint16_t t = 0;
-
-  if ((t % 10) == 0) {
-    rtc.Sec++;
-  }
-
-  if (rtc.Sec > 59) {
-    rtc.Min++;
-    rtc.Sec = 0;
-  }
-
-  if (rtc.Min > 59)
-      {
-    rtc.Hour++;
-    rtc.Min = 0;
-  }
-
   static uint8_t *frame_data = NULL;
   static uint8_t old_sec = 0;
   static uint8_t state = 0;
   static bool display_point = true;
+
+  DS3231_GetTime(&rtc);
 
   if (rtc.Sec != old_sec) {
     frame_data = get_time_frame_data(display_point);
@@ -204,7 +189,6 @@ void Clock_ShowTime(void) {
   Max7219_SetData(frame_data, FRAME_DATA_SIZE);
 
   old_sec = rtc.Sec;
-  t++;
 }
 
 void Clock_ShowDate(void) {

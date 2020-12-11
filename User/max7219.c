@@ -14,7 +14,7 @@
 #define CS_RESET() 	HAL_GPIO_WritePin(CS_MAX7219_GPIO_Port, CS_MAX7219_Pin, GPIO_PIN_SET)
 
 extern SPI_HandleTypeDef hspi1;
-extern TIM_HandleTypeDef htim1;
+extern TIM_HandleTypeDef htim2;
 
 static uint8_t volatile frame_data_ok = false;
 
@@ -115,7 +115,7 @@ void Max7219_RenderData(const uint8_t *data, uint32_t len) {
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
-  if (htim == (&htim1))
+  if (htim == (&htim2))
   {
     Max7219_Render();
   }
