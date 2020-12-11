@@ -61,21 +61,21 @@ static uint8_t* get_time_frame_data(bool display_point) {
 
   memset(time_frame_data, 0, sizeof(FRAME_DATA_SIZE));
 
-  for (uint8_t i = 0; i < 8; i++) {
-    for (uint8_t j = 0; j < LED_NUM; j++) {
-      uint8_t *data = time_frame_data + i * LED_NUM + j;
-      switch (j) {
+  for (uint8_t row = 0; row < 8; row++) {
+    for (uint8_t unit = 0; unit < LED_UNIT_NUM; unit++) {
+      uint8_t *data = time_frame_data + row * LED_UNIT_NUM + unit;
+      switch (unit) {
         case 0:
-          *data = numbers_5x8[hour_1st][i] | ((numbers_5x8[hour_2nd][i]) >> 5);
+          *data = numbers_5x8[hour_1st][row] | ((numbers_5x8[hour_2nd][row]) >> 5);
           break;
         case 1:
-          *data = numbers_5x8[hour_2nd][i] << 3 | ((display_point ? signs[0][i] : 0) >> 3) | ((numbers_5x8[minute_1st][i]) >> 5);
+          *data = numbers_5x8[hour_2nd][row] << 3 | ((display_point ? signs[0][row] : 0) >> 3) | ((numbers_5x8[minute_1st][row]) >> 5);
           break;
         case 2:
-          *data = (numbers_5x8[minute_1st][i] << 3) | (numbers_5x8[minute_2nd][i] >> 2);
+          *data = (numbers_5x8[minute_1st][row] << 3) | (numbers_5x8[minute_2nd][row] >> 2);
           break;
         case 3:
-          *data = (numbers_3x5[second_1st][i]) >> 1 | ((numbers_3x5[second_2nd][i]) >> 5);
+          *data = (numbers_3x5[second_1st][row]) >> 1 | ((numbers_3x5[second_2nd][row]) >> 5);
           break;
       }
     }
@@ -95,21 +95,21 @@ static uint8_t* get_date_frame_data(void) {
 
   memset(date_frame_datas, 0, sizeof(FRAME_DATA_SIZE));
 
-  for (uint8_t i = 0; i < 8; i++) {
-    for (uint8_t j = 0; j < LED_NUM; j++) {
-      uint8_t *data = date_frame_datas + i * LED_NUM + j;
-      switch (j) {
+  for (uint8_t row = 0; row < 8; row++) {
+    for (uint8_t col = 0; col < LED_UNIT_NUM; col++) {
+      uint8_t *data = date_frame_datas + row * LED_UNIT_NUM + col;
+      switch (col) {
         case 0:
-          *data = numbers_5x8[month_1st][i] | ((numbers_5x8[month_2nd][i]) >> 5);
+          *data = numbers_5x8[month_1st][row] | ((numbers_5x8[month_2nd][row]) >> 5);
           break;
         case 1:
-          *data = numbers_5x8[month_2nd][i] << 3 | (signs[3][i] >> 3) | ((numbers_5x8[day_1st][i]) >> 6);
+          *data = numbers_5x8[month_2nd][row] << 3 | (signs[3][row] >> 3) | ((numbers_5x8[day_1st][row]) >> 6);
           break;
         case 2:
-          *data = (numbers_5x8[day_1st][i] << 2) | (numbers_5x8[day_2nd][i] >> 3);
+          *data = (numbers_5x8[day_1st][row] << 2) | (numbers_5x8[day_2nd][row] >> 3);
           break;
         case 3:
-          *data = ((numbers_3x5[day_of_week][i]) >> 4);
+          *data = ((numbers_3x5[day_of_week][row]) >> 4);
           break;
       }
     }
@@ -122,37 +122,41 @@ static uint8_t* get_date_frame_data(void) {
 //  *(date_frame_data + row * LED_NUM + col) = n;
 //}
 
-static uint8_t* frame_data_row_to_col(uint8_t *row_frame_data) {
-  static uint8_t col_frame_data[FRAME_DATA_SIZE] = { 0 };
-
-  for (int row = 0; row < 32; ++row) {
-    for (int col = 0; col < 4; ++col) {
-
-    }
-  }
-
-  return col_frame_data;
-}
+//static uint8_t* frame_data_row_to_col(uint8_t *row_frame_data) {
+//  static uint8_t col_frame_data[FRAME_DATA_SIZE] = { 0 };
+//
+//  for (int unit = 0; unit < LED_UNIT_NUM; ++unit) {
+//    for (int bit = 0; bit < 8; ++bit) {
+//      for (int row = 0; row < 8; ++row) {
+//        const uint8_t unit_row_byte = *(row_frame_data + row * LED_UNIT_NUM + unit);
+//        uint8_t *col_data = &col_frame_data[row * unit];
+//        BIT_CHECK(unit_row_byte,bit) ? BIT_Set(col_data, );
+//      }
+//    }
+//  }
+//
+//  return col_frame_data;
+//}
 
 static void shift_down_time_sec_data(uint8_t *time_frame_data) {
-  const uint8_t old = *(time_frame_data + 7 * LED_NUM + 3);
+  const uint8_t old = *(time_frame_data + 7 * LED_UNIT_NUM + 3);
   for (int8_t i = 6; i >= 0; i--) {
-    uint8_t *data = time_frame_data + i * LED_NUM + 3;
-    *(time_frame_data + (i + 1) * LED_NUM + 3) = *data;
+    uint8_t *data = time_frame_data + i * LED_UNIT_NUM + 3;
+    *(time_frame_data + (i + 1) * LED_UNIT_NUM + 3) = *data;
   }
 
-  *(time_frame_data + 0 * LED_NUM + 3) = old;
+  *(time_frame_data + 0 * LED_UNIT_NUM + 3) = old;
 }
 
 static void shift_up_time_sec_data(uint8_t *time_frame_data) {
-  const uint8_t old = *(time_frame_data + 0 * LED_NUM + 3);
+  const uint8_t old = *(time_frame_data + 0 * LED_UNIT_NUM + 3);
 
   for (uint8_t i = 0; i < 7; i++) {
-    uint8_t *data = time_frame_data + i * LED_NUM + 3;
-    *data = *(time_frame_data + (i + 1) * LED_NUM + 3);
+    uint8_t *data = time_frame_data + i * LED_UNIT_NUM + 3;
+    *data = *(time_frame_data + (i + 1) * LED_UNIT_NUM + 3);
   }
 
-  *(time_frame_data + 7 * LED_NUM + 3) = old;
+  *(time_frame_data + 7 * LED_UNIT_NUM + 3) = old;
 }
 
 void Clock_Init(void) {
@@ -160,9 +164,11 @@ void Clock_Init(void) {
   Max7219_Init();
 }
 
-static uint16_t t = 0;
 
 void Clock_ShowTime(void) {
+
+  static uint16_t t = 0;
+
   if ((t % 10) == 0) {
     rtc.Sec++;
   }
@@ -195,7 +201,8 @@ void Clock_ShowTime(void) {
     state = 0;
   }
 
-  Max7219_RenderData(frame_data, FRAME_DATA_SIZE);
+  Max7219_SetData(frame_data, FRAME_DATA_SIZE);
+
   old_sec = rtc.Sec;
   t++;
 }
