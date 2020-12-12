@@ -6,7 +6,7 @@
 
 #define LED_UNIT_NUM 4
 #define FRAME_DATA_SIZE (8*LED_UNIT_NUM)
-#define DEFAULT_INTENSIVITY 0x05
+#define DEFAULT_INTENSIVITY 0x0a
 
 typedef enum {
   REG_DECODE_MODE = 0x09,
@@ -21,7 +21,6 @@ void Max7219_SetIntensivity(uint8_t intensivity);
 
 void Max7219_SetData(const uint8_t *data, uint32_t len);
 void Max7219_Render(void);
-
 void Max7219_RenderData(const uint8_t *frame_data,uint32_t len);
 
 
