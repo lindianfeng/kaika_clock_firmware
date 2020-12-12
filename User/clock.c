@@ -167,6 +167,24 @@ static void shift_up_time_sec_data(uint8_t *time_frame_data) {
     *(time_frame_data + 7 * LED_UNIT_NUM + 3) = old;
 }
 
+//static uint8_t* merge_sec_data(uint8_t *time_frame_data_from, uint8_t from_begin_row, uint8_t from_len, uint8_t *time_frame_data_to, uint8_t to_begin_row, uint8_t to_len) {
+//    if ((one_len + two_len) > 8) {
+//        return NULL;
+//    }
+//
+//    for (int8_t i = 0; i < one_len; i++) {
+//        const uint8_t row_data = *(time_frame_data_from + (one_begin_row + i) * LED_UNIT_NUM + 3);
+//        merge_data[i] = *row_data;
+//    }
+//
+//    for (int8_t i = 0; i < two_len; i++) {
+//        const uint8_t row_data = *(time_frame_data_two + (two_begin_row + i) * LED_UNIT_NUM + 3);
+//        merge_data[i + one_len + 1] = *row_data;
+//    }
+//
+//    return merge_data;
+//}
+
 #ifdef CLOCK_DEBUG
 static uint8_t * get_test_all_frame_data(void){
     static uint8_t col_frame_data[FRAME_DATA_SIZE] = { 0xff };
