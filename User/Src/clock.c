@@ -124,9 +124,9 @@ static void modify_frame_data(uint8_t *data, uint8_t row, uint8_t col, bool bit)
     uint8_t bit_no = 7 - led_unit_col;
 
     if (bit) {
-        BIT_SET(*led_unit_row_data, bit_no);
+      bitSet(*led_unit_row_data, bit_no);
     } else {
-        BIT_CLEAR(*led_unit_row_data, bit_no);
+      bitClear(*led_unit_row_data, bit_no);
     }
 }
 

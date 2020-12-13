@@ -8,17 +8,12 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
-#define BIT_SET(a,b) ((a) |= ((uint8_t)1<<(b)))
-#define BIT_CLEAR(a,b) ((a) &= ~((uint8_t)1<<(b)))
-#define BIT_FLIP(a,b) ((a) ^= ((uint8_t)1<<(b)))
-#define BIT_CHECK(a,b) (!!((a) & ((uint8_t)1<<(b))))
+#define MAX_DEBUG 0   ///< Enable or disable (default) debugging output from the MD_MAX72xx library
 
-/* x=target variable, y=mask */
-#define BITMASK_SET(x,y) ((x) |= (y))
-#define BITMASK_CLEAR(x,y) ((x) &= (~(y)))
-#define BITMASK_FLIP(x,y) ((x) ^= (y))
-#define BITMASK_CHECK_ALL(x,y) (!(~(x) & (y)))
-#define BITMASK_CHECK_ANY(x,y) ((x) & (y))
+#define bitRead(value, bit) (((value) >> (bit)) & 0x01)
+#define bitSet(value, bit) ((value) |= (1UL << (bit)))
+#define bitClear(value, bit) ((value) &= ~(1UL << (bit)))
+#define bitWrite(value, bit, bitvalue) (bitvalue ? bitSet(value, bit) : bitClear(value, bit))
 
 
 #endif /* UTILS_H_ */

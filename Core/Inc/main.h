@@ -69,7 +69,7 @@ void Error_Handler(void);
 #define KEY4_Pin GPIO_PIN_15
 #define KEY4_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
-
+void SystemClock_Config(void);
 /* USER CODE END Private defines */
 
 #ifdef __cplusplus
