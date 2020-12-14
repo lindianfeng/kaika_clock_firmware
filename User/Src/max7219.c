@@ -24,17 +24,6 @@ static void Max7219_SendData(uint8_t addr, uint8_t data);
 static void Max7219_WriteByte(uint8_t addr, uint8_t data);
 
 static void Max7219_Welcome(void) {
-    static uint8_t welcome_data[] = {
-        0B10101010,
-        0B01010101,
-        0B10101010,
-        0B01010101,
-        0B10101010,
-        0B01010101,
-        0B10101010,
-        0B01010101
-    };
-
     for (int i = 0; i < 8; i++) {
         CS_SET();
         for (int j = 0; j < 4; j++) {
@@ -54,14 +43,6 @@ static void Max7219_Welcome(void) {
     }
 
     HAL_Delay(500);
-
-    for (int i = 0; i < 8; i++) {
-        CS_SET();
-        for (int j = 0; j < 4; j++) {
-            Max7219_WriteByte(i + 1, welcome_data[i]);
-        }
-        CS_RESET();
-    }
 
     HAL_Delay(1000);
 }

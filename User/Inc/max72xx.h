@@ -46,7 +46,7 @@
 #define LAST_BUFFER  (MAX_DEVICES-1)   ///< Last buffer number
 
 #define SPI_DATA_SIZE (sizeof(uint8_t)*MAX_DEVICES*2)   ///< Size of the SPI data buffers
-#define SPI_OFFSET(i,x) (((LAST_BUFFER-(i))*2)+(x))     ///< SPI data offset for buffer i, digit x
+#define SPI_OFFSET(i,x) (((i)*2)+(x))     ///< SPI data offset for buffer i, digit x
 
 typedef enum {
   OFF = 0,  ///< General OFF status request
@@ -74,8 +74,8 @@ typedef enum {
   TINV  ///< Transform INVert (pixels inverted)
 } transformType_t;
 
-void MAX72XX_Init();
-void MAX72XX_DeInit();
+void MAX72XX_Init(void);
+void MAX72XX_DeInit(void);
 
 uint8_t MAX72XX_GetDeviceCount(void);
 uint8_t MAX72XX_GetColumnCount(void);

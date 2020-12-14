@@ -37,7 +37,7 @@ static bool _wrapAround = true;    // when shifting, wrap left to right and vice
 static deviceInfo_t *_matrix = NULL; // the current status of the LED matrix (buffers)
 static uint8_t *_spiData = NULL;   // data buffer for writing to SPI interface
 
-void MAX72XX_Init() {
+void MAX72XX_Init(void) {
   _matrix = (deviceInfo_t*) malloc(sizeof(deviceInfo_t) * MAX_DEVICES);
   _spiData = (uint8_t*) malloc(SPI_DATA_SIZE);
 
@@ -49,7 +49,7 @@ void MAX72XX_Init() {
   MAX72XX_ControlAll(SHUTDOWN, OFF);               // take the modules out of shutdown mode
 }
 
-void MAX72XX_DeInit() {
+void MAX72XX_DeInit(void) {
   free(_matrix);
   free(_spiData);
 }

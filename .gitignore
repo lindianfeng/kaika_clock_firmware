@@ -1,4 +1,5 @@
 /Debug/*
+/MDK-ARM/*
 /.settings/*
 .cproject
 .mxproject
