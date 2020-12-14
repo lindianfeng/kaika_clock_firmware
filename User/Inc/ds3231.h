@@ -4,27 +4,27 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define DS3231_REG_TIME         0x00
-#define DS3231_REG_ALARM1       0x07
-#define DS3231_REG_ALARM2       0x0B
-#define DS3231_REG_CONTROL      0x0E
-#define DS3231_REG_STATUS       0x0F
-#define DS3231_REG_TEMP         0x11
+#define DS3231_REG_TIME 0x00
+#define DS3231_REG_ALARM1 0x07
+#define DS3231_REG_ALARM2 0x0B
+#define DS3231_REG_CONTROL 0x0E
+#define DS3231_REG_STATUS 0x0F
+#define DS3231_REG_TEMP 0x11
 
-#define DS3231_CON_EOSC         0x80
-#define DS3231_CON_BBSQW        0x40
-#define DS3231_CON_CONV         0x20
-#define DS3231_CON_RS2          0x10
-#define DS3231_CON_RS1          0x08
-#define DS3231_CON_INTCN        0x04
-#define DS3231_CON_A2IE         0x02
-#define DS3231_CON_A1IE         0x01
+#define DS3231_CON_EOSC 0x80
+#define DS3231_CON_BBSQW 0x40
+#define DS3231_CON_CONV 0x20
+#define DS3231_CON_RS2 0x10
+#define DS3231_CON_RS1 0x08
+#define DS3231_CON_INTCN 0x04
+#define DS3231_CON_A2IE 0x02
+#define DS3231_CON_A1IE 0x01
 
-#define DS3231_STA_OSF          0x80
-#define DS3231_STA_32KHZ        0x08
-#define DS3231_STA_BSY          0x04
-#define DS3231_STA_A2F          0x02
-#define DS3231_STA_A1F          0x01
+#define DS3231_STA_OSF 0x80
+#define DS3231_STA_32KHZ 0x08
+#define DS3231_STA_BSY 0x04
+#define DS3231_STA_A2F 0x02
+#define DS3231_STA_A1F 0x01
 
 typedef enum {
   ALARM_MODE_ALL_MATCHED = 0,
@@ -58,7 +58,8 @@ void DS3231_Init(void);
 bool DS3231_GetTime(RTC_Data *rtc);
 bool DS3231_SetTime(RTC_Data *rtc);
 bool DS3231_ReadTemperature(float *temp);
-bool DS3231_SetAlarm(uint8_t mode, uint8_t date, uint8_t hour, uint8_t min, uint8_t sec);
+bool DS3231_SetAlarm(uint8_t mode, uint8_t date, uint8_t hour, uint8_t min,
+                     uint8_t sec);
 bool DS3231_ClearAlarm(void);
 bool ReadRegister(uint8_t regAddr, uint8_t *value);
 bool WriteRegister(uint8_t regAddr, uint8_t value);
