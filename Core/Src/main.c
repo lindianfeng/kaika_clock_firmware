@@ -67,8 +67,8 @@ void SystemClock_Config(void);
 /* USER CODE BEGIN 0 */
 
 typedef struct {
-  uint8_t state;
-  uint16_t times;
+  int state;
+  int times;
 } State;
 
 static inline void SetState(State *s, uint8_t state, uint16_t times) {
@@ -103,6 +103,14 @@ static State s = {0};
  * @brief  The application entry point.
  * @retval int
  */
+
+enum {
+  STATE_SHOW_TIME = 0,
+  STATE_TIME_SEC_CHANGED = 1,
+  STATE_TIME_SEC_JUMP_UP = 2,
+  STATE_TIME_SEC_JUMP_DOWN = 3,
+  STATE_SHOW_DATE = 4,
+};
 int main(void) {
   /* USER CODE BEGIN 1 */
 
@@ -189,31 +197,51 @@ int main(void) {
 
   //  MAX72XX_UpdateAll();
 
-  SetState(&s, 0, 1);
+  SetState(&s, STATE_SHOW_TIME, 0);
+
   const static uint8_t jump_times = 2;
+  static uint32_t last_tick = 0;
+
   while (1) {
-    if (Clock_UpdateRTC()) {
-      SetState(&s, 1, 2);
+    if ((HAL_GetTick() - last_tick) > 60000) {
+      SetState(&s, STATE_SHOW_DATE, 10);
+      last_tick = HAL_GetTick();
       continue;
     }
 
+    if (s.state != STATE_SHOW_DATE) {
+      if (Clock_UpdateRTC()) {
+        SetState(&s, STATE_TIME_SEC_CHANGED, 1);
+        continue;
+      }
+    }
+
     switch (s.state) {
-      case 0:
+      case STATE_SHOW_TIME:
+        Clock_ShowTime();
+        break;
+      case STATE_TIME_SEC_CHANGED:
         Clock_ShowTime();
         if (!TickState(&s)) {
-          SetState(&s, 1, jump_times);
+          SetState(&s, STATE_TIME_SEC_JUMP_UP, jump_times);
         }
         break;
-      case 1:
+      case STATE_TIME_SEC_JUMP_UP:
         Clock_SecondJumpUp();
         if (!TickState(&s)) {
-          SetState(&s, 2, jump_times);
+          SetState(&s, STATE_TIME_SEC_JUMP_DOWN, jump_times);
         }
         break;
-      case 2:
+      case STATE_TIME_SEC_JUMP_DOWN:
         Clock_SecondJumpDown();
         if (!TickState(&s)) {
-          SetState(&s, 0, 0);
+          SetState(&s, STATE_SHOW_TIME, 0);
+        }
+        break;
+      case STATE_SHOW_DATE:
+        Clock_ShowDate();
+        if (!TickState(&s)) {
+          SetState(&s, STATE_SHOW_TIME, 0);
         }
         break;
     }

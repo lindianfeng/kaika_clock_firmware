@@ -14,7 +14,7 @@ extern I2C_HandleTypeDef hi2c1;
 static uint16_t B2D(uint16_t bcd);
 static uint16_t D2B(uint16_t decimal);
 
-RTC_Data rtc = { .Year = 0, .Month = 2, .Day = 2, .DaysOfWeek = SATURDAY, .Hour = 0, .Min = 0, .Sec = 0 };
+RTC_Data rtc = { .Year = 0, .Month = 12, .Day = 28, .DaysOfWeek = SATURDAY, .Hour = 0, .Min = 0, .Sec = 0 };
 
 void DS3231_Init() {
 }
