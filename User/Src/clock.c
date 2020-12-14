@@ -46,7 +46,8 @@ const uint8_t numbers_3x5[10][8] = {
 const uint8_t signs[][8] = {
     {0x00, 0x80, 0x80, 0x00, 0x00, 0x80, 0x80, 0x00},  //:
     {0x3c, 0x42, 0xa5, 0x81, 0xa5, 0x99, 0x42, 0x3c},  //笑脸
-    {0x3c, 0x42, 0xa5, 0x81, 0xbd, 0x81, 0x42, 0x3c}};
+    {0x3c, 0x42, 0xa5, 0x81, 0xbd, 0x81, 0x42, 0x3c},
+    {0x00, 0x00, 0x00, 0x70, 0x00, 0x00, 0x00, 0x00}};
 
 static void led_display_time(uint8_t hour, uint8_t minute, uint8_t second) {
   const uint8_t hour_1st = hour / 10;
@@ -110,7 +111,7 @@ static void led_display_date(uint8_t month, uint8_t day_of_month,
           break;
         case 1:
           data = numbers_5x8[month_2nd][row] << 3 |
-                 (signs[0][row] >> 3 | numbers_5x8[day_1st][row] >> 7);
+                 (signs[3][row] >> 3 | numbers_5x8[day_1st][row] >> 7);
           break;
         case 2:
           data = (numbers_5x8[day_1st][row] << 1) |
@@ -128,6 +129,16 @@ static void led_display_date(uint8_t month, uint8_t day_of_month,
 
   MAX72XX_ControlAll(UPDATE, ON);
   MAX72XX_UpdateAll();
+}
+
+void Clock_FlashTimePoint(void) {
+  static bool b = true;
+  MAX72XX_SetPoint(1, 11, b);
+  MAX72XX_SetPoint(2, 11, b);
+  MAX72XX_SetPoint(5, 11, b);
+  MAX72XX_SetPoint(6, 11, b);
+  b = !b;
+	MAX72XX_UpdateAll();
 }
 
 bool Clock_UpdateRTC(void) {

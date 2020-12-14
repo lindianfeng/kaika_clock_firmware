@@ -200,53 +200,61 @@ int main(void) {
   SetState(&s, STATE_SHOW_TIME, 0);
 
   const static uint8_t jump_times = 2;
-  static uint32_t last_tick = 0;
+  static uint32_t show_date_last_tick = 0;
+  static uint32_t flash_point_last_tick = 0;
 
   while (1) {
-    if ((HAL_GetTick() - last_tick) > 60000) {
-      SetState(&s, STATE_SHOW_DATE, 10);
-      last_tick = HAL_GetTick();
-      continue;
-    }
-
-    if (s.state != STATE_SHOW_DATE) {
-      if (Clock_UpdateRTC()) {
-        SetState(&s, STATE_TIME_SEC_CHANGED, 1);
-        continue;
+    do {
+      if ((HAL_GetTick() - show_date_last_tick) > 60000) {
+        show_date_last_tick = HAL_GetTick();
+        SetState(&s, STATE_SHOW_DATE, 10);
+        break;
       }
+
+      if (s.state != STATE_SHOW_DATE) {
+        if (Clock_UpdateRTC()) {
+          SetState(&s, STATE_TIME_SEC_CHANGED, 1);
+          break;
+        }
+      }
+
+      switch (s.state) {
+        case STATE_SHOW_TIME:
+          Clock_ShowTime();
+          break;
+        case STATE_TIME_SEC_CHANGED:
+          Clock_ShowTime();
+          if (!TickState(&s)) {
+            SetState(&s, STATE_TIME_SEC_JUMP_UP, jump_times);
+          }
+          break;
+        case STATE_TIME_SEC_JUMP_UP:
+          Clock_SecondJumpUp();
+          if (!TickState(&s)) {
+            SetState(&s, STATE_TIME_SEC_JUMP_DOWN, jump_times);
+          }
+          break;
+        case STATE_TIME_SEC_JUMP_DOWN:
+          Clock_SecondJumpDown();
+          if (!TickState(&s)) {
+            SetState(&s, STATE_SHOW_TIME, 0);
+          }
+          break;
+        case STATE_SHOW_DATE:
+          Clock_ShowDate();
+          if (!TickState(&s)) {
+            SetState(&s, STATE_SHOW_TIME, 0);
+          }
+          break;
+      }
+    } while (false);
+
+    if (s.state != STATE_SHOW_DATE &&(HAL_GetTick() - flash_point_last_tick) > 499) {
+      flash_point_last_tick = HAL_GetTick();
+      Clock_FlashTimePoint();
     }
 
-    switch (s.state) {
-      case STATE_SHOW_TIME:
-        Clock_ShowTime();
-        break;
-      case STATE_TIME_SEC_CHANGED:
-        Clock_ShowTime();
-        if (!TickState(&s)) {
-          SetState(&s, STATE_TIME_SEC_JUMP_UP, jump_times);
-        }
-        break;
-      case STATE_TIME_SEC_JUMP_UP:
-        Clock_SecondJumpUp();
-        if (!TickState(&s)) {
-          SetState(&s, STATE_TIME_SEC_JUMP_DOWN, jump_times);
-        }
-        break;
-      case STATE_TIME_SEC_JUMP_DOWN:
-        Clock_SecondJumpDown();
-        if (!TickState(&s)) {
-          SetState(&s, STATE_SHOW_TIME, 0);
-        }
-        break;
-      case STATE_SHOW_DATE:
-        Clock_ShowDate();
-        if (!TickState(&s)) {
-          SetState(&s, STATE_SHOW_TIME, 0);
-        }
-        break;
-    }
-
-    HAL_Delay(100);
+    HAL_Delay(99);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
