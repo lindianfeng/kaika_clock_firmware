@@ -94,6 +94,7 @@ bool MAX72XX_GetBuffer(uint16_t col, uint8_t size, uint8_t *pd);
 
 uint8_t MAX72XX_GetDevColumn(uint8_t buf, uint8_t c);
 uint8_t MAX72XX_GetPixelColumn(uint8_t c);
+
 bool MAX72XX_SetDevColumn(uint8_t buf, uint8_t c, uint8_t value);
 bool MAX72XX_SetPixelColumn(uint16_t c, uint8_t value);
 
