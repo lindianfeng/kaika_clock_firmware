@@ -64,6 +64,20 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+typedef struct {
+	 uint8_t   state;
+	 uint16_t times;
+}State;
+
+static inline void SetState(State * s,uint8_t state,uint16_t times){
+	s->state = state;
+	s->times = times;
+}
+
+static inline bool TickState(State * s){
+	 return --s->times;
+}
+
 //bool isChangeState(void) {
 //  static uint32_t lastTime = 0;
 //
@@ -80,6 +94,9 @@ void SystemClock_Config(void);
 //
 //  return (b);
 //}
+
+static State s = {0};
+
 
 /* USER CODE END 0 */
 
@@ -122,7 +139,7 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  HAL_Delay(100);
+
 
 //  for (int i = 0; i < 2; i++) {
 //    MAX72XX_SetRowOne(i, 0, 0B01010101);
@@ -176,17 +193,33 @@ int main(void)
 
 //  MAX72XX_UpdateAll();
 
-  HAL_Delay(500);
+  SetState(&s,0,1);
 
   while (1) {
 
-		MAX72XX_SetPoint(0,0,1);
-		//MAX72XX_SetPoint(1,7,1);
-		MAX72XX_SetPoint(2,8,1);
-		MAX72XX_SetPoint(3,16,1);
-		HAL_Delay(500);
-		Clock_ShowTime();
-		HAL_Delay(500);
+		switch(s.state){
+			case 0:
+		    Clock_ShowTime();
+			  if(!TickState(&s)){
+					SetState(&s,1,2);
+				}
+				break;
+			case 1:
+				Clock_SecondJumpUp();
+			  if(!TickState(&s)){
+					SetState(&s,2,2);
+				}
+				break;
+			case 2:
+				Clock_SecondJumpDown();
+			  if(!TickState(&s)){
+					SetState(&s,0,1);
+				}
+				break;
+		}
+		
+	
+		HAL_Delay(99);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
