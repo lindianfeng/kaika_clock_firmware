@@ -11,11 +11,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#define SECOND_JUMP_TIMES  2
 void Clock_Init(void);
 bool Clock_UpdateRTC(void);
-void Clock_ShowTime(void);
+void Clock_ShowTime(bool b);
 void Clock_ShowDate(void);
-void Clock_FlashTimePoint(void);
+void Clock_FlashTimePoint(bool b);
 void Clock_SecondJumpUp(void);
 void Clock_SecondJumpDown(void);
 
