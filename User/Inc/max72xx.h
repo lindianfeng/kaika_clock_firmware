@@ -45,6 +45,13 @@
 #define FIRST_BUFFER 0                 ///< First buffer number
 #define LAST_BUFFER  (MAX_DEVICES-1)   ///< Last buffer number
 
+// Macros to map reversed ROW and COLUMN coordinates
+#define HW_ROW(r) (r) ///< Pixel to hardware coordinate row mapping
+//#define HW_COL(c) (c) ///< Pixel to hardware coordinate column mapp
+
+//#define HW_ROW(r) (ROW_SIZE - 1 - (r)) ///< Pixel to hardware coordinate row mapping
+#define HW_COL(c) (COL_SIZE - 1 - (c)) ///< Pixel to hardware coordinate column mapping
+
 #define SPI_DATA_SIZE (sizeof(uint8_t)*MAX_DEVICES*2)   ///< Size of the SPI data buffers
 #define SPI_OFFSET(i,x) (((i)*2)+(x))     ///< SPI data offset for buffer i, digit x
 

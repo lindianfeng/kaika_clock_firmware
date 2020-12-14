@@ -82,8 +82,7 @@ static void MAX72XX_FlushBufferAll() {
 
     MAX72XX_SpiClearBuffer();
 
-    for (uint8_t dev = FIRST_BUFFER; dev <= LAST_BUFFER; dev++) // all devices
-        {
+    for (uint8_t dev = FIRST_BUFFER; dev <= LAST_BUFFER; dev++){
       if (bitRead(_matrix[dev].changed, i)) {
         // put our device data into the buffer
         _spiData[SPI_OFFSET(dev, 0)] = OP_DIGIT0 + i;
@@ -273,7 +272,7 @@ static uint8_t MAX72XX_BitReverse(uint8_t b) {
 static bool MAX72XX_CopyC(uint8_t buf, uint8_t cSrc, uint8_t cDest) {
   // Src and Dest are in pixel coordinates.
   // if we are just copying rows there is no need to repackage any data
-  uint8_t maskSrc = 1 << cSrc;  // which column/row of bits is the column data
+  uint8_t maskSrc = 1 << HW_COL(cSrc);  // which column/row of bits is the column data
 
   if ((buf > LAST_BUFFER) || (cSrc >= COL_SIZE) || (cDest >= COL_SIZE)) {
     return (false);
@@ -281,9 +280,9 @@ static bool MAX72XX_CopyC(uint8_t buf, uint8_t cSrc, uint8_t cDest) {
 
   for (uint8_t i = 0; i < ROW_SIZE; i++) {
     if (_matrix[buf].dig[i] & maskSrc) {
-      bitSet(_matrix[buf].dig[i], cDest);
+      bitSet(_matrix[buf].dig[i], HW_COL(cDest));
     } else {
-      bitClear(_matrix[buf].dig[i], cDest);
+      bitClear(_matrix[buf].dig[i], HW_COL(cDest));
     }
   }
 
@@ -303,8 +302,8 @@ static bool MAX72XX_CopyR(uint8_t buf, uint8_t rSrc, uint8_t rDest) {
     return (false);
   }
 
-  _matrix[buf].dig[rDest] = _matrix[buf].dig[rSrc];
-  bitSet(_matrix[buf].changed, rDest);
+  _matrix[buf].dig[HW_ROW(rDest)] = _matrix[buf].dig[HW_ROW(rSrc)];
+  bitSet(_matrix[buf].changed, HW_ROW(rDest));
 
   if (_updateEnabled) {
     MAX72XX_FlushBuffer(buf);
@@ -324,7 +323,7 @@ static bool MAX72XX_CopyRow(uint8_t buf, uint8_t rSrc, uint8_t rDest) {
 static uint8_t MAX72XX_GetC(uint8_t buf, uint8_t c)
 // c is in pixel coordinates and the return value must be in pixel coordinate order
 {
-  uint8_t mask = 1 << c;  // which column/row of bits is the column data
+  uint8_t mask = 1 << HW_COL(c);  // which column/row of bits is the column data
   uint8_t value = 0;        // assembles data to be returned to caller
 
   if ((buf > LAST_BUFFER) || (c >= COL_SIZE)) {
@@ -334,7 +333,7 @@ static uint8_t MAX72XX_GetC(uint8_t buf, uint8_t c)
   // for each digit data, pull out the column/row bit and place
   // it in value. The loop creates the data in pixel coordinate order as it goes.
   for (uint8_t i = 0; i < ROW_SIZE; i++) {
-    if (_matrix[buf].dig[i] & mask) {
+    if (_matrix[buf].dig[HW_ROW(i)] & mask) {
       bitSet(value, i);
     }
   }
@@ -349,7 +348,7 @@ static uint8_t MAX72XX_GetR(uint8_t buf, uint8_t r) {
     return (0);
   }
 
-  uint8_t value = _matrix[buf].dig[r];
+  uint8_t value = _matrix[buf].dig[HW_ROW(r)];
 
   return (value);
 }
@@ -376,9 +375,9 @@ static bool MAX72XX_SetC(uint8_t buf, uint8_t c, uint8_t value) {
   for (uint8_t i = 0; i < ROW_SIZE; i++) {
     if (value & (1 << i)) {
       // mask off next column/row value passed in and set it in the dig buffer
-      bitSet(_matrix[buf].dig[i], c);
+      bitSet(_matrix[buf].dig[HW_ROW(i)], HW_COL(c));
     } else {
-      bitClear(_matrix[buf].dig[i], c);
+      bitClear(_matrix[buf].dig[HW_ROW(i)], HW_COL(c));
     }
   }
   _matrix[buf].changed = ALL_CHANGED;
@@ -396,8 +395,8 @@ static bool MAX72XX_SetR(uint8_t buf, uint8_t r, uint8_t value) {
     return (false);
   }
 
-  _matrix[buf].dig[r] = value;
-  bitSet(_matrix[buf].changed, r);
+  _matrix[buf].dig[HW_ROW(r)] = value;
+  bitSet(_matrix[buf].changed, HW_ROW(r));
 
   if (_updateEnabled) {
     MAX72XX_FlushBuffer(buf);
@@ -486,7 +485,7 @@ bool MAX72XX_GetPoint(uint8_t r, uint16_t c) {
     return (false);
   }
 
-  return (bitRead(_matrix[buf].dig[r], c == 1));
+  return (bitRead(_matrix[buf].dig[HW_ROW(r)], HW_COL(c) == 1));
 
 }
 
@@ -494,17 +493,17 @@ bool MAX72XX_SetPoint(uint8_t r, uint16_t c, bool state) {
   uint8_t buf = c / COL_SIZE;
   c %= COL_SIZE;
 
-  if ((buf > LAST_BUFFER) || (r >= ROW_SIZE) || (c >= COL_SIZE))
+  if ((buf > LAST_BUFFER) || (r >= ROW_SIZE) || (c >= COL_SIZE)){
     return (false);
+	}
 
   if (state) {
-    bitSet(_matrix[buf].dig[r], c);
-
+    bitSet(_matrix[buf].dig[HW_ROW(r)], HW_COL(c));
   } else {
-    bitClear(_matrix[buf].dig[r], c);
+    bitClear(_matrix[buf].dig[HW_ROW(r)], HW_COL(c));
   }
 
-  bitSet(_matrix[buf].changed, r);
+  bitSet(_matrix[buf].changed, HW_ROW(r));
 
   if (_updateEnabled) {
     MAX72XX_FlushBuffer(buf);

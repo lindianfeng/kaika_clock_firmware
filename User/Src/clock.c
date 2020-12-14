@@ -53,6 +53,7 @@ static void led_display_time(uint8_t hour, uint8_t minute, uint8_t second) {
 
   const uint8_t second_1st = second / 10;
   const uint8_t second_2nd = second % 10;
+	MAX72XX_ControlAll(UPDATE, OFF);
   MAX72XX_ClearAll();
   for (uint8_t row = 0; row < 8; row++) {
     for (uint8_t dev = 0; dev < MAX_DEVICES; dev++) {
@@ -75,7 +76,7 @@ static void led_display_time(uint8_t hour, uint8_t minute, uint8_t second) {
       MAX72XX_SetRowOne(dev, row, data);
     }
   }
-
+	MAX72XX_ControlAll(UPDATE, ON);
   MAX72XX_UpdateAll();
 }
 
@@ -86,7 +87,10 @@ static void led_display_date(uint8_t month, uint8_t day_of_month, uint8_t dayofw
   const uint8_t day_1st = day_of_month / 10;
   const uint8_t day_2nd = day_of_month % 10;
   const uint8_t day_of_week = dayofweek;
+	
+	MAX72XX_ControlAll(UPDATE, OFF);
   MAX72XX_ClearAll();
+	
   for (uint8_t row = 0; row < 8; row++) {
     for (uint8_t dev = 0; dev < MAX_DEVICES; dev++) {
       uint8_t data = 0;
@@ -95,7 +99,7 @@ static void led_display_date(uint8_t month, uint8_t day_of_month, uint8_t dayofw
           data = numbers_5x8[month_1st][row] | ((numbers_5x8[month_2nd][row]) >> 5);
           break;
         case 1:
-          data = numbers_5x8[month_2nd][row] << 3 | (signs[3][row] >> 3 | numbers_5x8[day_1st][row] >> 7);
+          data = numbers_5x8[month_2nd][row] << 3 | (signs[0][row] >> 3 | numbers_5x8[day_1st][row] >> 7);
           break;
         case 2:
           data = (numbers_5x8[day_1st][row] << 1) | (numbers_5x8[day_2nd][row] >> 4);
@@ -107,7 +111,8 @@ static void led_display_date(uint8_t month, uint8_t day_of_month, uint8_t dayofw
       MAX72XX_SetRowOne(dev, row, data);
     }
   }
-
+	
+  MAX72XX_ControlAll(UPDATE, ON);
   MAX72XX_UpdateAll();
 }
 

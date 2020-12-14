@@ -168,27 +168,25 @@ int main(void)
 //    MAX72XX_SetRowOne(i, 7, 0B00000000);
 //  }
 
-  uint64_t image = 0xffe799e799e799ff;
+//  uint64_t image = 0xffe799e799e799ff;
 
 
-  MAX72XX_SetRowOne(3, 0,0x1);
+//  MAX72XX_SetRowOne(3, 0,0x1);
 
 
-  MAX72XX_UpdateAll();
+//  MAX72XX_UpdateAll();
 
   HAL_Delay(500);
 
   while (1) {
-    Clock_ShowTime();
-    HAL_Delay(100);
-		Clock_SecondJumpUp();
-		HAL_Delay(100);
-		Clock_SecondJumpUp();
-		HAL_Delay(100);
-		Clock_SecondJumpDown();
-		HAL_Delay(100);
-		Clock_SecondJumpDown();
-		HAL_Delay(100);
+
+		MAX72XX_SetPoint(0,0,1);
+		//MAX72XX_SetPoint(1,7,1);
+		MAX72XX_SetPoint(2,8,1);
+		MAX72XX_SetPoint(3,16,1);
+		HAL_Delay(500);
+		Clock_ShowTime();
+		HAL_Delay(500);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
