@@ -92,7 +92,7 @@ static inline bool TickState(State *s) {
 }
 
 static State s = { 0 };
-
+extern uint8_t numbers_5x8_col_data[][8];
 /* USER CODE END 0 */
 
 /**
