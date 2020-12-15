@@ -196,7 +196,7 @@ int main(void) {
       }
 
       if (TickTimer_IsExpired(&show_date_ticktimer, tick)) {
-        SetState(&s, STATE_SHOW_DATE, 15);
+        SetState(&s, STATE_SHOW_DATE, 20);
         break;
       }
 
@@ -240,7 +240,6 @@ int main(void) {
       Clock_FlashTimePoint(time_show_point);
       time_show_point = !time_show_point;
     }
-
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

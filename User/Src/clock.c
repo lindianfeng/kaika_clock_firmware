@@ -113,17 +113,18 @@ static void led_display_date(uint8_t month, uint8_t day_of_month,
       uint8_t data = 0;
       switch (dev) {
         case 0:
-          data = numbers_5x8[month_1st][row] | ((numbers_5x8[month_2nd][row]) << 5);
+          data = ((numbers_3x5[day_of_week == 1 ? 7 : day_of_week - 1][row]) << 1) | numbers_5x8[month_1st][row] << 6;
           break;
         case 1:
-          data = numbers_5x8[month_2nd][row] >> 3 | signs[3][row] << 3 | numbers_5x8[day_1st][row] << 7;
+          data = numbers_5x8[month_1st][row] >> 2 | ((numbers_5x8[month_2nd][row]) << 3);
           break;
         case 2:
-          data = (numbers_5x8[day_1st][row] >> 1) | (numbers_5x8[day_2nd][row] << 4);
+          data = signs[3][row] << 1 | numbers_5x8[day_1st][row] << 5;
           break;
         case 3:
-          data = (numbers_5x8[day_2nd][row] >> 4) | ((numbers_3x5[day_of_week == 1 ? 7 : day_of_week - 1][row]) << 5);
+          data = (numbers_5x8[day_1st][row] >> 3) | (numbers_5x8[day_2nd][row] << 2);//(numbers_5x8[day_2nd][row]) |
           break;
+
       }
       MAX72XX_SetRowOne(dev, row, data);
     }
@@ -228,7 +229,7 @@ static void MAX72XX_ShowWelcome(void) {
 void Clock_Init(void) {
   DS3231_Init();
   MAX72XX_Init();
-  MAX72XX_ShowWelcome();
+  //MAX72XX_ShowWelcome();
 }
 
 void Clock_ShowTime(bool b) {
