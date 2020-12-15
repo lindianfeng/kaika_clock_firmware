@@ -206,37 +206,37 @@ int main(void) {
       }
 
       switch (s.state) {
-        case STATE_SHOW_TIME:
-          Clock_ShowTime(time_show_point);
-          break;
-        case STATE_TIME_SEC_CHANGED:
-          Clock_ShowTime(time_show_point);
-          if (!TickState(&s)) {
-            SetState(&s, STATE_TIME_SEC_JUMP_UP, SECOND_JUMP_TIMES);
-          }
-          break;
-        case STATE_TIME_SEC_JUMP_UP:
-          Clock_SecondJumpUp();
-          if (!TickState(&s)) {
-            SetState(&s, STATE_TIME_SEC_JUMP_DOWN, SECOND_JUMP_TIMES);
-          }
-          break;
-        case STATE_TIME_SEC_JUMP_DOWN:
-          Clock_SecondJumpDown();
-          if (!TickState(&s)) {
-            SetState(&s, STATE_SHOW_TIME, 0);
-          }
-          break;
-        case STATE_SHOW_DATE:
-          Clock_ShowDate();
-          if (!TickState(&s)) {
-            SetState(&s, STATE_SHOW_TIME, 0);
-          }
-          break;
+      case STATE_SHOW_TIME:
+        Clock_ShowTime(time_show_point);
+        break;
+      case STATE_TIME_SEC_CHANGED:
+        Clock_ShowTime(time_show_point);
+        if (!TickState(&s)) {
+          SetState(&s, STATE_TIME_SEC_JUMP_UP, SECOND_JUMP_TIMES);
+        }
+        break;
+      case STATE_TIME_SEC_JUMP_UP:
+        Clock_SecondJumpUp();
+        if (!TickState(&s)) {
+          SetState(&s, STATE_TIME_SEC_JUMP_DOWN, SECOND_JUMP_TIMES);
+        }
+        break;
+      case STATE_TIME_SEC_JUMP_DOWN:
+        Clock_SecondJumpDown();
+        if (!TickState(&s)) {
+          SetState(&s, STATE_SHOW_TIME, 0);
+        }
+        break;
+      case STATE_SHOW_DATE:
+        Clock_ShowDate();
+        if (!TickState(&s)) {
+          SetState(&s, STATE_SHOW_TIME, 0);
+        }
+        break;
       }
     } while (false);
 
-    if (s.prestate != STATE_SHOW_DATE && s.state != STATE_SHOW_DATE && TickTimer_IsExpired(&flash_point_ticktimer, tick)) {
+    if (s.state != STATE_SHOW_DATE && TickTimer_IsExpired(&flash_point_ticktimer, tick)) {
       Clock_FlashTimePoint(time_show_point);
       time_show_point = !time_show_point;
     }
