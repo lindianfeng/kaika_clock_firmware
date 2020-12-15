@@ -236,7 +236,7 @@ int main(void) {
       }
     } while (false);
 
-    if (s.state != STATE_SHOW_DATE && TickTimer_IsExpired(&flash_point_ticktimer, tick)) {
+    if (s.prestate != STATE_SHOW_DATE && s.state != STATE_SHOW_DATE && TickTimer_IsExpired(&flash_point_ticktimer, tick)) {
       Clock_FlashTimePoint(time_show_point);
       time_show_point = !time_show_point;
     }

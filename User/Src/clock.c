@@ -160,16 +160,16 @@ static void led_display_date(uint8_t month, uint8_t day_of_month,
       uint8_t data = 0;
       switch (dev) {
         case 0:
-          data = ((numbers_3x5[day_of_week == 1 ? 7 : day_of_week - 1][row]) << 1) | numbers_5x8[month_1st][row] << 6;
+          data = numbers_5x8[month_1st][row] << 2 | numbers_5x8[month_2nd][row] << 7;
           break;
         case 1:
-          data = numbers_5x8[month_1st][row] >> 2 | ((numbers_5x8[month_2nd][row]) << 3);
+          data = numbers_5x8[month_2nd][row] >> 1 | signs[3][row] << 5;
           break;
         case 2:
-          data = signs[3][row] << 1 | numbers_5x8[day_1st][row] << 5;
+          data =  numbers_5x8[day_1st][row] << 1 | numbers_5x8[day_2nd][row] << 6;
           break;
         case 3:
-          data = (numbers_5x8[day_1st][row] >> 3) | (numbers_5x8[day_2nd][row] << 2);  //(numbers_5x8[day_2nd][row]) |
+          data = numbers_5x8[day_2nd][row] >> 2 | (numbers_3x5[day_of_week == 1 ? 7 : day_of_week - 1][row]) << 5;
           break;
 
       }
@@ -201,21 +201,21 @@ void Clock_TestLedMatrix() {
     HAL_Delay(50);
   }
 
-  HAL_Delay(200);
-
-  MAX72XX_ClearAll();
-  MAX72XX_SetPixelColumn(0, 0xff);
-  for (int i = 0; i < 31; i++) {
-    MAX72XX_TransformAll(TSL);
-    HAL_Delay(50);
-  }
-
-  MAX72XX_ClearAll();
-  MAX72XX_SetRowAll(0, 0xff);
-  for (int i = 0; i < 7; i++) {
-    MAX72XX_TransformAll(TSD);
-    HAL_Delay(50);
-  }
+//  HAL_Delay(200);
+//
+//  MAX72XX_ClearAll();
+//  MAX72XX_SetPixelColumn(0, 0xff);
+//  for (int i = 0; i < 31; i++) {
+//    MAX72XX_TransformAll(TSL);
+//    HAL_Delay(50);
+//  }
+//
+//  MAX72XX_ClearAll();
+//  MAX72XX_SetRowAll(0, 0xff);
+//  for (int i = 0; i < 7; i++) {
+//    MAX72XX_TransformAll(TSD);
+//    HAL_Delay(50);
+//  }
 
   HAL_Delay(200);
 }
