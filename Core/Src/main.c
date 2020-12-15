@@ -188,6 +188,13 @@ int main(void) {
       .autoreload = true, .interval = 99, .lasttick = 0};
 
   while (1) {
+    Clock_TestLedMatrix();
+
+
+    Clock_ShowTime(1);
+
+    HAL_Delay(1000);
+    /*
     const uint32_t tick = HAL_GetTick();
 
     do {
@@ -242,7 +249,7 @@ int main(void) {
       Clock_FlashTimePoint(time_show_point);
       time_show_point = !time_show_point;
     }
-
+*/
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

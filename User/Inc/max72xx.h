@@ -54,11 +54,9 @@
 #define HW_ROW(r) (_hwRevRows ? (ROW_SIZE - 1 - (r)) : (r)) ///< Pixel to hardware coordinate row mapping
 #define HW_COL(c) (_hwRevCols ? (COL_SIZE - 1 - (c)) : (c)) ///< Pixel to hardware coordinate column mapping
 
-//#define SPI_DATA_SIZE (sizeof(uint8_t)*MAX_DEVICES*2)   ///< Size of the SPI data buffers
-//#define SPI_OFFSET(i,x) (((i)*2)+(x))     ///< SPI data offset for buffer i, digit x
-
 #define SPI_DATA_SIZE (sizeof(uint8_t)*MAX_DEVICES*2)   ///< Size of the SPI data buffers
 #define SPI_OFFSET(i,x) (((LAST_BUFFER-(i))*2)+(x))     ///< SPI data offset for buffer i, digit x
+
 
 typedef enum {
   OFF = 0,  ///< General OFF status request

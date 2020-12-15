@@ -19,5 +19,6 @@ void Clock_ShowDate(void);
 void Clock_FlashTimePoint(bool b);
 void Clock_SecondJumpUp(void);
 void Clock_SecondJumpDown(void);
+void Clock_TestLedMatrix();
 
 #endif /* CLOCK_H_ */
