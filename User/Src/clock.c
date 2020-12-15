@@ -157,14 +157,14 @@ void Clock_TestLedMatrix() {
 
   MAX72XX_ClearAll();
   MAX72XX_SetPixelColumn(0, 0xff);
-  for (int i = 0; i < 32; i++) {
+  for (int i = 0; i < 31; i++) {
     MAX72XX_TransformAll(TSL);
     HAL_Delay(50);
   }
 
   MAX72XX_ClearAll();
   MAX72XX_SetRowAll(0, 0xff);
-  for (int i = 0; i < 8; i++) {
+  for (int i = 0; i < 7; i++) {
     MAX72XX_TransformAll(TSD);
     HAL_Delay(50);
   }
@@ -218,16 +218,7 @@ static void MAX72XX_ShowWelcome(void) {
 
   MAX72XX_ClearAll();
 
-  for (int i = 0; i < 8; i++) {
-    MAX72XX_SetRowOne(0, i, signs[4][i]);
-  }
-
-  HAL_Delay(10);
-
-  for (int i = 0; i < 22; i++) {
-    MAX72XX_TransformAll(TSL);
-    HAL_Delay(50);
-  }
+  Clock_TestLedMatrix();
 
   MAX72XX_ClearAll();
 

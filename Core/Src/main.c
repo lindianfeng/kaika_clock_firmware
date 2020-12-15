@@ -77,17 +77,21 @@ enum {
 
 typedef struct {
   int state;
+  int prestate;
   int times;
 } State;
 
 static inline void SetState(State *s, uint8_t state, uint16_t times) {
+  s->prestate = s->state;
   s->state = state;
   s->times = times;
 }
 
-static inline bool TickState(State *s) { return !s->times || --s->times; }
+static inline bool TickState(State *s) {
+  return !s->times || --s->times;
+}
 
-static State s = {0};
+static State s = { 0 };
 
 /* USER CODE END 0 */
 
@@ -178,23 +182,12 @@ int main(void) {
   SetState(&s, STATE_SHOW_TIME, 0);
 
   static bool time_show_point = true;
-  static TickTimer show_date_ticktimer = {
-      .autoreload = true, .interval = 59999, .lasttick = 0};
-  static TickTimer update_rtc_ticktimer = {
-      .autoreload = true, .interval = 49, .lasttick = 0};
-  static TickTimer flash_point_ticktimer = {
-      .autoreload = true, .interval = 499, .lasttick = 0};
-  static TickTimer frame_ticktimer = {
-      .autoreload = true, .interval = 99, .lasttick = 0};
+  static TickTimer show_date_ticktimer = { .autoreload = true, .interval = 59999, .lasttick = 0 };
+  static TickTimer update_rtc_ticktimer = { .autoreload = true, .interval = 49, .lasttick = 0 };
+  static TickTimer flash_point_ticktimer = { .autoreload = true, .interval = 499, .lasttick = 0 };
+  static TickTimer frame_ticktimer = { .autoreload = true, .interval = 99, .lasttick = 0 };
 
   while (1) {
-    Clock_TestLedMatrix();
-
-
-    Clock_ShowTime(1);
-
-    HAL_Delay(1000);
-    /*
     const uint32_t tick = HAL_GetTick();
 
     do {
@@ -203,13 +196,11 @@ int main(void) {
       }
 
       if (TickTimer_IsExpired(&show_date_ticktimer, tick)) {
-        SetState(&s, STATE_SHOW_DATE, 10);
+        SetState(&s, STATE_SHOW_DATE, 15);
         break;
       }
 
-      if (s.state != STATE_SHOW_DATE &&
-          TickTimer_IsExpired(&update_rtc_ticktimer, tick) &&
-          Clock_UpdateRTC()) {
+      if (s.state != STATE_SHOW_DATE && TickTimer_IsExpired(&update_rtc_ticktimer, tick) && Clock_UpdateRTC()) {
         SetState(&s, STATE_TIME_SEC_CHANGED, 1);
         break;
       }
@@ -245,11 +236,11 @@ int main(void) {
       }
     } while (false);
 
-    if (TickTimer_IsExpired(&flash_point_ticktimer, tick)) {
+    if (s.state != STATE_SHOW_DATE && TickTimer_IsExpired(&flash_point_ticktimer, tick)) {
       Clock_FlashTimePoint(time_show_point);
       time_show_point = !time_show_point;
     }
-*/
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -262,9 +253,9 @@ int main(void) {
  * @retval None
  */
 void SystemClock_Config(void) {
-  RCC_OscInitTypeDef RCC_OscInitStruct = {0};
-  RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
-  RCC_PeriphCLKInitTypeDef PeriphClkInit = {0};
+  RCC_OscInitTypeDef RCC_OscInitStruct = { 0 };
+  RCC_ClkInitTypeDef RCC_ClkInitStruct = { 0 };
+  RCC_PeriphCLKInitTypeDef PeriphClkInit = { 0 };
 
   /** Initializes the RCC Oscillators according to the specified parameters
    * in the RCC_OscInitTypeDef structure.
@@ -282,7 +273,7 @@ void SystemClock_Config(void) {
   /** Initializes the CPU, AHB and APB buses clocks
    */
   RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK |
-                                RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+  RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
