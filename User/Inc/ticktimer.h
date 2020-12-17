@@ -15,8 +15,8 @@ typedef struct {
   bool autoreload;
   uint32_t lasttick;
   uint32_t interval;
-} TickTimer;
+} tick_timer;
 
-bool TickTimer_IsExpired(TickTimer *timer, uint32_t tick);
+bool TickTimer_IsExpired(tick_timer *timer, uint32_t tick);
 
 #endif /* INC_TICKTIMER_H_ */

@@ -7,7 +7,7 @@
 
 #include "ticktimer.h"
 
-bool TickTimer_IsExpired(TickTimer *timer, uint32_t tick) {
+bool TickTimer_IsExpired(tick_timer *timer, uint32_t tick) {
   if (tick - timer->lasttick > timer->interval) {
     if (timer->autoreload) {
       timer->lasttick = tick;
@@ -15,4 +15,14 @@ bool TickTimer_IsExpired(TickTimer *timer, uint32_t tick) {
     return true;
   }
   return false;
+}
+
+void TickTimer_Startup(tick_timer *timer, uint32_t tick, uint32_t interval) {
+  timer->lasttick = tick;
+  timer->interval = interval;
+}
+
+void TickTimer_Cleanup(tick_timer *timer) {
+  timer->lasttick = 0;
+  timer->interval = 0;
 }
