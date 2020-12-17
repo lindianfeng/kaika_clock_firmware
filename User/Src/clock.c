@@ -275,7 +275,7 @@ static void MAX72XX_ShowWelcome(void) {
 void Clock_Init(void) {
   DS3231_Init();
   MAX72XX_Init();
-//  MAX72XX_ShowWelcome();
+  MAX72XX_ShowWelcome();
 }
 
 void Clock_ToggleSecPoint() {
@@ -307,7 +307,6 @@ void Clock_UpdateDiplay() {
 void Clock_ClearAll() {
   MAX72XX_ClearAll();
 }
-
 
 #define SECOND_MOVE_ROWS 2
 #define DISPLAY_DATE_TICMKS 20

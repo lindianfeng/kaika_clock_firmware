@@ -283,15 +283,10 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  static tick_timer show_date_ticktimer;
-  static tick_timer update_rtc_ticktimer;
-  static tick_timer flash_point_ticktimer;
-  static tick_timer reader_ticktimer;
-
-  timer_init(&show_date_ticktimer, on_show_date_ticktimer_timeout, 59999, 59999);
-  timer_init(&update_rtc_ticktimer, on_update_rtc_ticktimer_timeout, 499, 499);
-  timer_init(&flash_point_ticktimer, on_flash_point_ticktimer_timeout, 499, 499);
-  timer_init(&reader_ticktimer, on_reader_ticktimer_timeout, 99, 99);
+  static tick_timer show_date_ticktimer = { .timeout_cb = on_show_date_ticktimer_timeout, .timeout = 59999, .repeat = 59999 };
+  static tick_timer update_rtc_ticktimer = { .timeout_cb = on_update_rtc_ticktimer_timeout, .timeout = 199, .repeat = 199 };
+  static tick_timer flash_point_ticktimer = { .timeout_cb = on_flash_point_ticktimer_timeout, .timeout = 499, .repeat = 499 };
+  static tick_timer reader_ticktimer = { .timeout_cb = on_reader_ticktimer_timeout, .timeout = 99, .repeat = 99 };
 
   timer_start(&show_date_ticktimer);
   timer_start(&update_rtc_ticktimer);
@@ -304,6 +299,7 @@ int main(void)
   while (1)
   {
     const uint32_t tick = HAL_GetTick();
+
     timer_ticks(tick);
 
     switch (clock_s.state) {
