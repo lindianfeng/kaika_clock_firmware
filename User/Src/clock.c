@@ -275,11 +275,10 @@ static void MAX72XX_ShowWelcome(void) {
 void Clock_Init(void) {
   DS3231_Init();
   MAX72XX_Init();
-  MAX72XX_ShowWelcome();
+//  MAX72XX_ShowWelcome();
 }
 
 void Clock_ToggleSecPoint() {
-  Clock_FlashTimePoint();
   need_flash_point = !need_flash_point;
 }
 
@@ -292,10 +291,12 @@ void Clock_ShowDate(void) {
 }
 
 void Clock_SecondJumpUp(void) {
+  Clock_FlashTimePoint();
   MAX72XX_TransformOne(3, TSU);
 }
 
 void Clock_SecondJumpDown(void) {
+  Clock_FlashTimePoint();
   MAX72XX_TransformOne(3, TSD);
 }
 

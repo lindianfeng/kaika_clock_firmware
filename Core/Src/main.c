@@ -308,10 +308,6 @@ int main(void)
             break;
         }
 
-        if (TickTimer_IsExpired(&flash_point_ticktimer, tick)) {
-          Clock_ToggleSecPoint();
-        }
-
         break;
       }
       case STATE_CLOCK_DATE:
@@ -323,9 +319,14 @@ int main(void)
         break;
     }
 
+    if (TickTimer_IsExpired(&flash_point_ticktimer, tick)) {
+      Clock_ToggleSecPoint();
+    }
+
     if (TickTimer_IsExpired(&reader_ticktimer, tick)) {
       Clock_UpdateDiplay();
     }
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
