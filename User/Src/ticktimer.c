@@ -7,22 +7,57 @@
 
 #include "ticktimer.h"
 
-bool TickTimer_IsExpired(tick_timer *timer, uint32_t tick) {
-  if (tick - timer->lasttick > timer->interval) {
-    if (timer->autoreload) {
-      timer->lasttick = tick;
-    }
-    return true;
+static struct tick_timer *head_timer = 0;
+static uint32_t cur_ticks = 0;
+
+void timer_init(struct tick_timer *timer, void (*timeout_cb)(void), uint32_t timeout, uint32_t repeat)
+{
+  timer->timeout = cur_ticks + timeout;
+  timer->repeat = repeat;
+  timer->timeout_cb = timeout_cb;
+
+}
+
+int timer_start(struct tick_timer *timer) {
+  struct tick_timer *target = head_timer;
+  while (target) {
+    if (target == timer)
+      return -1;  //already exist.
+    target = target->next;
   }
-  return false;
+
+  timer->next = head_timer;
+  head_timer = timer;
+
+  return 0;
 }
 
-void TickTimer_Startup(tick_timer *timer, uint32_t tick, uint32_t interval) {
-  timer->lasttick = tick;
-  timer->interval = interval;
+void timer_stop(struct tick_timer *timer)
+{
+  struct tick_timer **curr;
+  for (curr = &head_timer; *curr;) {
+    struct tick_timer *entry = *curr;
+    if (entry == timer) {
+      *curr = entry->next;
+    } else
+      curr = &entry->next;
+  }
 }
 
-void TickTimer_Cleanup(tick_timer *timer) {
-  timer->lasttick = 0;
-  timer->interval = 0;
+void timer_ticks(uint32_t tick) {
+  cur_ticks = tick;
+}
+
+void timer_loop(void) {
+  struct tick_timer *target;
+  for (target = head_timer; target; target = target->next) {
+    if (cur_ticks >= target->timeout) {
+      if (target->repeat == 0) {
+        timer_stop(target);
+      } else {
+        target->timeout = cur_ticks + target->repeat;
+      }
+      target->timeout_cb();
+    }
+  }
 }
