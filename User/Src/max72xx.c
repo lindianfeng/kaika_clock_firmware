@@ -12,8 +12,8 @@
 #include "main.h"
 #include "utils.h"
 
-#define CS_SET()  HAL_GPIO_WritePin(CS_MAX7219_GPIO_Port, CS_MAX7219_Pin, GPIO_PIN_RESET)
-#define CS_RESET()  HAL_GPIO_WritePin(CS_MAX7219_GPIO_Port, CS_MAX7219_Pin, GPIO_PIN_SET)
+#define CS_SET()  HAL_GPIO_WritePin(MAX7219_CS_GPIO_Port, MAX7219_CS_Pin, GPIO_PIN_RESET)
+#define CS_RESET()  HAL_GPIO_WritePin(MAX7219_CS_GPIO_Port, MAX7219_CS_Pin, GPIO_PIN_SET)
 
 extern SPI_HandleTypeDef hspi1;
 

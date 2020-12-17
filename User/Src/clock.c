@@ -5,15 +5,15 @@
  *      Author: linhao
  */
 
-#include "clock.h"
-
 #include <stdio.h>
-#include <string.h>
-
+#include "main.h"
+#include "i2c.h"
+#include "spi.h"
+#include "usb_device.h"
+#include "gpio.h"
 #include "ds3231.h"
 #include "max72xx.h"
-#include "stm32f1xx_hal.h"
-#include "utils.h"
+#include "ticktimer.h"
 
 extern RTC_Data rtc;
 static bool need_flash_point = false;
@@ -180,7 +180,7 @@ static void led_display_date(uint8_t month, uint8_t day_of_month,
   MAX72XX_UpdateAll();
 }
 
-void Clock_TestLedMatrix() {
+static void Clock_TestLedMatrix() {
 
   MAX72XX_ClearAll();
   for (int i = 0; i < 32; i++) {
@@ -227,25 +227,25 @@ static void Clock_FlashTimePoint() {
   MAX72XX_UpdateAll();
 }
 
-bool Clock_UpdateRTC(void) {
+static bool Clock_UpdateRTC(void) {
   static uint8_t old_sec = 0;
-  static uint32_t last_tick = 0;
-  //DS3231_GetTime(&rtc);
+  //static uint32_t last_tick = 0;
+  DS3231_GetTime(&rtc);
 
-  if (HAL_GetTick() - last_tick > 999) {
-    rtc.Sec++;
-    last_tick = HAL_GetTick();
-  }
-
-  if (rtc.Sec > 59) {
-    rtc.Min++;
-    rtc.Sec = 0;
-  }
-
-  if (rtc.Min > 59) {
-    rtc.Hour++;
-    rtc.Min = 0;
-  }
+//  if (HAL_GetTick() - last_tick > 999) {
+//    rtc.Sec++;
+//    last_tick = HAL_GetTick();
+//  }
+//
+//  if (rtc.Sec > 59) {
+//    rtc.Min++;
+//    rtc.Sec = 0;
+//  }
+//
+//  if (rtc.Min > 59) {
+//    rtc.Hour++;
+//    rtc.Min = 0;
+//  }
 
   if (rtc.Sec != old_sec) {
     old_sec = rtc.Sec;
@@ -272,41 +272,233 @@ static void MAX72XX_ShowWelcome(void) {
   MAX72XX_UpdateAll();
 }
 
-void Clock_Init(void) {
+static void Clock_Init(void) {
   DS3231_Init();
   MAX72XX_Init();
   MAX72XX_ShowWelcome();
 }
 
-void Clock_ToggleSecPoint() {
+static void Clock_ToggleSecPoint() {
   need_flash_point = !need_flash_point;
 }
 
-void Clock_ShowTime() {
+static void Clock_ShowTime() {
   led_display_time(rtc.Hour, rtc.Min, rtc.Sec, need_flash_point);
 }
 
-void Clock_ShowDate(void) {
+static void Clock_ShowDate(void) {
   led_display_date(rtc.Month, rtc.Day, rtc.DaysOfWeek);
 }
 
-void Clock_SecondJumpUp(void) {
+static void Clock_SecondJumpUp(void) {
   Clock_FlashTimePoint();
   MAX72XX_TransformOne(3, TSU);
 }
 
-void Clock_SecondJumpDown(void) {
+static void Clock_SecondJumpDown(void) {
   Clock_FlashTimePoint();
   MAX72XX_TransformOne(3, TSD);
 }
 
-void Clock_UpdateDiplay() {
+static void Clock_UpdateDiplay() {
   MAX72XX_UpdateAll();
 }
 
-void Clock_ClearAll() {
-  MAX72XX_ClearAll();
+//static void Clock_ClearAll() {
+//  MAX72XX_ClearAll();
+//}
+
+
+enum {
+  STATE_CLOCK_TIME = 0,
+  STATE_CLOCK_DATE = 1,
+  STATE_CLOCK_TEMP = 2,
+};
+
+enum {
+  STATE_TIME_SHOW = 0,
+  STATE_TIME_SEC_CHANGED = 1,
+  STATE_TIME_SEC_JUMP_UP = 2,
+  STATE_TIME_SEC_JUMP_DOWN = 3,
+};
+
+typedef struct {
+  bool fired;
+  int16_t state;
+  int32_t timeout;
+  int16_t repeat;
+  uint32_t starttick;
+  void (*callback)(void);
+} State;
+
+static State clock_states[3] = { { .fired = false, .state = STATE_CLOCK_TIME, .timeout = 10, .repeat = -1, .starttick = 0, .callback = Clock_ShowTime }, { .fired = false, .state = STATE_CLOCK_DATE, .timeout = 2000, .repeat = 1, .starttick =
+    0, .callback = Clock_ShowDate }, { .fired = false, .state = STATE_CLOCK_TEMP, .timeout = 0, .repeat = 0, .starttick = 0, .callback = 0 } };
+
+static State time_states[4] = { { .fired = false, .state = STATE_TIME_SHOW, .timeout = 10, .repeat = -1, .starttick = 0, .callback = Clock_ShowTime }, {
+    .fired = false, .state = STATE_TIME_SEC_CHANGED, .timeout = 0, .repeat = 0, .starttick = 0, .callback = NULL }, { .fired = false, .state = STATE_TIME_SEC_JUMP_UP, .timeout = 100, .repeat = 2, .starttick = 0, .callback =
+    Clock_SecondJumpUp }, { .fired = false, .state = STATE_TIME_SEC_JUMP_DOWN, .timeout = 100, .repeat = 2, .starttick = 0, .callback = Clock_SecondJumpDown } };
+
+static State clock_s = { 0 };
+static State time_s = { 0 };
+
+static inline void ChangeClockState(int clock_state_n, uint32_t tick) {
+  printf("ChangeClockState:%d.\r\n", clock_state_n);
+  clock_s = clock_states[clock_state_n];
 }
+
+static inline void ChangeTimeState(int time_state_n, uint32_t tick) {
+  printf("ChangeTimeState:%d.\r\n", time_state_n);
+  time_s = time_states[time_state_n];
+}
+
+static inline bool TickState(State *s, uint32_t tick) {
+  if (!s->timeout) {
+    printf("1.TickState:%d,timeout:%ld,repeat:%d,fired:%d.\r\n", s->state, s->timeout, s->repeat, s->fired);
+    return true;
+  }
+
+  if (!s->fired) {
+    if (s->callback) {
+      s->callback();
+    }
+
+    s->fired = true;
+    s->starttick = tick;
+
+    if (-1 != s->repeat) {
+      --s->repeat;
+    }
+    printf("2.TickState:%d,timeout:%ld,repeat:%d,fired:%d.\r\n", s->state, s->timeout, s->repeat, s->fired);
+  } else {
+    if ((tick - s->starttick) > s->timeout) {
+      if (0 == s->repeat) {
+        printf("3.TickState:%d,timeout:%ld,repeat:%d,fired:%d.\r\n", s->state, s->timeout, s->repeat, s->fired);
+        return true;
+      } else {
+        if (s->callback) {
+          s->callback();
+        }
+
+        if (-1 != s->repeat) {
+          --s->repeat;
+        }
+
+        printf("4.TickState:%d,timeout:%ld,repeat:%d,fired:%d.\r\n", s->state, s->timeout, s->repeat, s->fired);
+      }
+
+      s->starttick = tick;
+    } else {
+      printf("5.TickState:%d,timeout:%ld,repeat:%d,fired:%d.\r\n", s->state, s->timeout, s->repeat, s->fired);
+    }
+  }
+
+  return false;
+}
+
+static void on_show_date_ticktimer_timeout() {
+  ChangeClockState(STATE_CLOCK_DATE, HAL_GetTick());
+}
+
+static void on_update_rtc_ticktimer_timeout() {
+  if (Clock_UpdateRTC()) {
+    ChangeTimeState(STATE_TIME_SEC_CHANGED, HAL_GetTick());
+  }
+}
+
+static void on_flash_point_ticktimer_timeout() {
+  Clock_ToggleSecPoint();
+}
+
+static void on_reader_ticktimer_timeout() {
+  Clock_UpdateDiplay();
+}
+
+extern void SystemClock_Config(void);
+
+int main(void)
+{
+  HAL_Init();
+
+  SystemClock_Config();
+
+
+  MX_GPIO_Init();
+  MX_I2C1_Init();
+  MX_SPI1_Init();
+  MX_USB_DEVICE_Init();
+  Clock_Init();
+
+  printf("Clock Init Completed!\r\n");
+
+  /* USER CODE END 2 */
+
+  /* Infinite loop */
+  /* USER CODE BEGIN WHILE */
+  static tick_timer show_date_ticktimer = { .timeout_cb = on_show_date_ticktimer_timeout, .timeout = 59999, .repeat = 59999 };
+  static tick_timer update_rtc_ticktimer = { .timeout_cb = on_update_rtc_ticktimer_timeout, .timeout = 199, .repeat = 199 };
+  static tick_timer flash_point_ticktimer = { .timeout_cb = on_flash_point_ticktimer_timeout, .timeout = 499, .repeat = 499 };
+  static tick_timer reader_ticktimer = { .timeout_cb = on_reader_ticktimer_timeout, .timeout = 99, .repeat = 99 };
+
+  timer_start(&show_date_ticktimer);
+  timer_start(&update_rtc_ticktimer);
+  timer_start(&flash_point_ticktimer);
+  timer_start(&reader_ticktimer);
+
+  clock_s = clock_states[0];
+  time_s = time_states[0];
+
+  while (1)
+  {
+    const uint32_t tick = HAL_GetTick();
+
+    timer_ticks(tick);
+
+    switch (clock_s.state) {
+      case STATE_CLOCK_TIME: {
+        switch (time_s.state) {
+          case STATE_TIME_SHOW:
+            TickState(&time_s, tick);
+            break;
+          case STATE_TIME_SEC_CHANGED:
+            if (TickState(&time_s, tick)) {
+              ChangeTimeState(STATE_TIME_SEC_JUMP_UP, tick);
+            }
+            break;
+          case STATE_TIME_SEC_JUMP_UP:
+            if (TickState(&time_s, tick)) {
+              ChangeTimeState(STATE_TIME_SEC_JUMP_DOWN, tick);
+            }
+            break;
+          case STATE_TIME_SEC_JUMP_DOWN:
+            if (TickState(&time_s, tick)) {
+              ChangeTimeState(STATE_TIME_SHOW, tick);
+            }
+            break;
+        }
+
+        break;
+      }
+      case STATE_CLOCK_DATE:
+        if (TickState(&clock_s, tick)) {
+          ChangeClockState(STATE_CLOCK_TIME, tick);
+          ChangeTimeState(STATE_TIME_SHOW, tick);
+          Clock_ShowTime();
+        }
+        break;
+    }
+
+    timer_loop();
+
+    /* USER CODE END WHILE */
+
+    /* USER CODE BEGIN 3 */
+  }
+  /* USER CODE END 3 */
+}
+
+
+
+
 
 #define SECOND_MOVE_ROWS 2
 #define DISPLAY_DATE_TICMKS 20

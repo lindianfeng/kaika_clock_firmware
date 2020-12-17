@@ -17,6 +17,7 @@ static uint16_t D2B(uint16_t decimal);
 RTC_Data rtc = { .Year = 2020, .Month = 01, .Day = 23, .DaysOfWeek = SATURDAY, .Hour = 0, .Min = 0, .Sec = 0 };
 
 void DS3231_Init() {
+  DS3231_GetTime(&rtc);
 }
 
 bool DS3231_GetTime(RTC_Data *rtc) {
