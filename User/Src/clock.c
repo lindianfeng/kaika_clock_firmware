@@ -229,7 +229,7 @@ static void Clock_FlashTimePoint() {
 
 static bool Clock_UpdateRTC(void) {
   static uint8_t old_sec = 0;
-  //static uint32_t last_tick = 0;
+//  static uint32_t last_tick = 0;
   DS3231_GetTime(&rtc);
 
 //  if (HAL_GetTick() - last_tick > 999) {
@@ -430,10 +430,6 @@ int main(void)
 
   printf("Clock Init Completed!\r\n");
 
-  /* USER CODE END 2 */
-
-  /* Infinite loop */
-  /* USER CODE BEGIN WHILE */
   static tick_timer show_date_ticktimer = { .timeout_cb = on_show_date_ticktimer_timeout, .timeout = 59999, .repeat = 59999 };
   static tick_timer update_rtc_ticktimer = { .timeout_cb = on_update_rtc_ticktimer_timeout, .timeout = 199, .repeat = 199 };
   static tick_timer flash_point_ticktimer = { .timeout_cb = on_flash_point_ticktimer_timeout, .timeout = 499, .repeat = 499 };
