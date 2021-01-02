@@ -8,16 +8,19 @@
 #ifndef DELAY_H_
 #define DELAY_H_
 
- #include "stm32f1xx_hal.h"
+#include "stm32f1xx_hal.h"
 
-void delay_us(uint32_t us)
+extern TIM_HandleTypeDef htim4;
+
+void delay_us(uint16_t us)
 {
-    uint32_t delay = (HAL_RCC_GetHCLKFreq() / 4000000 * us);
-    while (delay--)
-  {
-    ;
-  }
-}
+  __HAL_TIM_SET_COUNTER(&htim4, 0);
 
+  HAL_TIM_Base_Start(&htim4);
+
+  while (__HAL_TIM_GET_COUNTER(&htim4) != us);
+
+  HAL_TIM_Base_Stop(&htim4);
+}
 
 #endif /* DELAY_H_ */
